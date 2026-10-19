@@ -1,0 +1,395 @@
+{
+ "municipio": {
+  "cod_ibge": "2900603",
+  "municipio": "Aiquara",
+  "uf": "BA",
+  "populacao_2022": "4447",
+  "ubs": "1",
+  "ama": "0",
+  "emei": "2",
+  "inss_beneficios": "593",
+  "inss_aposentadorias": "266",
+  "inss_pensoes": "58",
+  "inss_auxilios": "7",
+  "inss_assistenciais": "260",
+  "inss_valor_mensal": "832701",
+  "fns_aps": "921831.24",
+  "fns_aps_emendas": "1000000.00",
+  "fns_farmacia": "39949.60",
+  "fns_mac": "204750.00",
+  "fns_total": "3053830.84",
+  "adultos_2022": "3371"
+ },
+ "ubs": {
+  "cod_ibge": "2900603",
+  "municipio": "Aiquara",
+  "uf": "BA",
+  "populacao_2022": "4447",
+  "tipo": "UBS",
+  "nome": "Unidade de Saude da Familia Maria Cerqueira",
+  "endereco": "Praca Inocencio Rocha, s/n · Povoado de Palmeirin",
+  "bairro": "Povoado de Palmeirin",
+  "cep": "45220000",
+  "telefone": "",
+  "codigo": "CNES 4021258",
+  "etapas": "",
+  "matriculas_pre": ""
+ },
+ "emei": {
+  "cod_ibge": "2900603",
+  "municipio": "Aiquara",
+  "uf": "BA",
+  "populacao_2022": "4447",
+  "tipo": "EMEI",
+  "nome": "Escola Creche Maria Luiza Reis Mendonca",
+  "endereco": "Rua Francisco Moreira Rios, 51 Predio · Centro",
+  "bairro": "Centro",
+  "cep": "45220000",
+  "telefone": "73 35472033",
+  "codigo": "INEP 29222303",
+  "etapas": "Creche + pré-escola",
+  "matriculas_pre": "82"
+ },
+ "numeros": {
+  "apos": "266",
+  "apos_frase": "266 aposentados",
+  "apos_real": true,
+  "ubs": 1,
+  "aps": 921831.24,
+  "farmacia": 39949.6,
+  "mac": 204750.0,
+  "adultos": 3371,
+  "diab": 340,
+  "crian": 82,
+  "crian_real": true,
+  "integral": 1,
+  "turmas": 5,
+  "docentes": 4,
+  "merenda_ano": 13597.999999999998,
+  "pdde": 0.0,
+  "inss_mes": 832701.0
+ },
+ "pedidos": [
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p1",
+    "name": "ba-aiquara-p1",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "arte",
+    "manchetePx": 96,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Aiquara (BA)",
+    "manchete": "Posto de saúde\nde Aiquara\nem risco",
+    "corpo": "Aiquara recebe **R$ 922 mil por ano** do SUS federal para a **sua UBS**. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Repasse federal da atenção primária do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p2",
+    "name": "ba-aiquara-p2",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 240,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 58,
+    "textoPx": 28,
+    "corpoPx": 29
+   },
+   "data": {
+    "tema": "Saúde · Aiquara (BA)",
+    "manchete": "",
+    "numero": "340",
+    "chamada": "diabéticos na área\nda UBS da cidade",
+    "corte_1": "R$ 922 mil por ano do SUS federal para a UBS da cidade",
+    "corte_2": "R$ 40 mil por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 205 mil por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativa: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais), cidade com 1 UBS; repasses: Portal da Transparência, set/2025 a ago/2026 · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara.svg"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p3",
+    "name": "ba-aiquara-p3",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "arte",
+    "manchetePx": 84,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Aiquara (BA)",
+    "manchete": "Merenda da\nEscola Creche\nMaria Mendonça\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **82 crianças** da Escola Creche Maria Luiza Reis Mendonça, no Centro, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 29222303)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p4",
+    "name": "ba-aiquara-p4",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 272,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 64,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Educação infantil · Aiquara (BA)",
+    "manchete": "",
+    "numero": "82",
+    "chamada": "crianças na pré-escola da Escola Creche Maria Mendonça",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "5 turmas e 4 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 29222303) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara.svg"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p5",
+    "name": "ba-aiquara-p5",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "arte",
+    "manchetePx": 84,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Aiquara (BA)",
+    "manchete": "266 aposentados\nde Aiquara\nem risco",
+    "corpo": "Em Aiquara, **266 aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-p6",
+    "name": "ba-aiquara-p6",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 300,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Aiquara (BA)",
+    "manchete": "",
+    "numero": "266",
+    "chamada": "aposentados de\nAiquara vivem do INSS",
+    "corpo": "Todo mês, **R$ 833 mil** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara.svg"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k1",
+    "name": "ba-aiquara-k1",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "cheio",
+    "manchetePx": 87,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Aiquara (BA)",
+    "manchete": "Posto de saúde\nde Aiquara\nem risco",
+    "corpo": "Aiquara recebe **R$ 922 mil por ano** do SUS federal para a **sua UBS**. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Repasse federal da atenção primária do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k2",
+    "name": "ba-aiquara-k2",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 170,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 31,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Saúde · Aiquara (BA)",
+    "manchete": "Diabético\nna mão",
+    "numero": "340",
+    "chamada": "diabéticos na área da UBS de Aiquara",
+    "corte_1": "R$ 922 mil por ano do SUS federal para a UBS da cidade",
+    "corte_2": "R$ 40 mil por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 205 mil por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativa: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais), cidade com 1 UBS; repasses: Portal da Transparência, set/2025 a ago/2026 · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara-saude.svg"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k3",
+    "name": "ba-aiquara-k3",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "cheio",
+    "manchetePx": 77,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Aiquara (BA)",
+    "manchete": "Merenda da\nEscola Creche\nMaria Mendonça\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **82 crianças** da Escola Creche Maria Luiza Reis Mendonça, no Centro, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 29222303)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k4",
+    "name": "ba-aiquara-k4",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Aiquara (BA)",
+    "manchete": "Escola\nem risco",
+    "numero": "82",
+    "chamada": "crianças na pré-escola da Escola Creche Maria Mendonça",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "5 turmas e 4 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 29222303) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara-emei.svg"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k5",
+    "name": "ba-aiquara-k5",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "cheio",
+    "manchetePx": 78,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Aiquara (BA)",
+    "manchete": "266 aposentados\nem risco",
+    "corpo": "Em Aiquara, **266 aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ba-aiquara-k6",
+    "name": "ba-aiquara-k6",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Aiquara (BA)",
+    "manchete": "Aposentado\nem risco",
+    "numero": "266",
+    "chamada": "aposentados de Aiquara vivem do INSS",
+    "corpo": "Todo mês, **R$ 833 mil** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Mapa: IBGE",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "../../../dados/brutos/artes_mapa/ba-aiquara-aposentados.svg"
+   }
+  }
+ ],
+ "nomes": {
+  "regra": "cidade",
+  "par": 1,
+  "bairro": "Centro",
+  "saude_generica": true,
+  "saude_card": "",
+  "saude_completo": "",
+  "escola_card": "Escola Creche Maria Mendonça",
+  "escola_completo": "Escola Creche Maria Luiza Reis Mendonça"
+ }
+}

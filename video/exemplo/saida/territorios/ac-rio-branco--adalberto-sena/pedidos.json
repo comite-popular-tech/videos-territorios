@@ -1,0 +1,399 @@
+{
+ "municipio": {
+  "cod_ibge": "1200401",
+  "municipio": "Rio Branco",
+  "uf": "AC",
+  "populacao_2022": "364756",
+  "ubs": "125",
+  "ama": "0",
+  "emei": "55",
+  "inss_beneficios": "55428",
+  "inss_aposentadorias": "20174",
+  "inss_pensoes": "8993",
+  "inss_auxilios": "3388",
+  "inss_assistenciais": "22426",
+  "inss_valor_mensal": "85393084",
+  "fns_aps": "50330609.27",
+  "fns_aps_emendas": "49705735.00",
+  "fns_farmacia": "3155272.80",
+  "fns_mac": "13889435.04",
+  "fns_total": "170662869.42",
+  "adultos_2022": "261724"
+ },
+ "ubs": {
+  "cod_ibge": "1200401",
+  "municipio": "Rio Branco",
+  "uf": "AC",
+  "populacao_2022": "364756",
+  "tipo": "UBS",
+  "nome": "Urap Francisco Roney Rodrigues Meireles",
+  "endereco": "Rua Mara, 132 · Adalberto Sena",
+  "bairro": "Adalberto Sena",
+  "cep": "69921150",
+  "telefone": "(68)3228-2329",
+  "codigo": "CNES 2000490",
+  "etapas": "",
+  "matriculas_pre": ""
+ },
+ "emei": {
+  "cod_ibge": "1200401",
+  "municipio": "Rio Branco",
+  "uf": "AC",
+  "populacao_2022": "364756",
+  "tipo": "EMEI",
+  "nome": "Esc Vovo Mocinha",
+  "endereco": "Rua Ayrton Senna, 123 · Conjunto Xavier Maia",
+  "bairro": "Conjunto Xavier Maia",
+  "cep": "69903014",
+  "telefone": "68 32283656",
+  "codigo": "INEP 12022632",
+  "etapas": "Pré-escola",
+  "matriculas_pre": "364"
+ },
+ "numeros": {
+  "apos": "20 mil",
+  "apos_frase": "20 mil aposentados",
+  "apos_real": true,
+  "ubs": 125,
+  "aps": 50330609.27,
+  "farmacia": 3155272.8,
+  "mac": 13889435.04,
+  "adultos": 261724,
+  "diab": 210,
+  "crian": 364,
+  "crian_real": true,
+  "integral": 72,
+  "turmas": 16,
+  "docentes": 15,
+  "merenda_ano": 70496.0,
+  "pdde": 0.0,
+  "inss_mes": 85393084.0
+ },
+ "pedidos": [
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p1",
+    "name": "ac-rio-branco-p1",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "arte",
+    "manchetePx": 96,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Rio Branco (AC)",
+    "manchete": "URAP Francisco\nMeireles\nem risco",
+    "corpo": "Rio Branco recebe **R$ 50,3 milhões por ano** do SUS federal para as suas **125 UBS**. Em média, **R$ 403 mil** para cada uma, como a URAP Francisco Roney Rodrigues Meireles. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 125 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p2",
+    "name": "ac-rio-branco-p2",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 208,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 52,
+    "textoPx": 26,
+    "corpoPx": 27
+   },
+   "data": {
+    "tema": "Saúde · Rio Branco (AC)",
+    "manchete": "",
+    "numero": "210",
+    "chamada": "diabéticos, em média,\nna área de cada UBS,\ncomo a URAP Francisco Meireles",
+    "corte_1": "R$ 403 mil por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 3,2 milhões por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 13,9 milhões por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 125 UBS; repasse da atenção primária ÷ 125 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p3",
+    "name": "ac-rio-branco-p3",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "arte",
+    "manchetePx": 76,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Rio Branco (AC)",
+    "manchete": "Merenda da\nEscola Vovó Mocinha\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **364 crianças** da Escola Vovó Mocinha, no bairro Conjunto Xavier Maia, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 12022632)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p4",
+    "name": "ac-rio-branco-p4",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 272,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 64,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Educação infantil · Rio Branco (AC)",
+    "manchete": "",
+    "numero": "364",
+    "chamada": "crianças na pré-escola da Escola Vovó Mocinha",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "16 turmas e 15 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 12022632) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p5",
+    "name": "ac-rio-branco-p5",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "arte",
+    "manchetePx": 80,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Rio Branco (AC)",
+    "manchete": "20 mil aposentados\nde Rio Branco\nem risco",
+    "corpo": "Em Rio Branco, **20 mil aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-p6",
+    "name": "ac-rio-branco-p6",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 300,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Rio Branco (AC)",
+    "manchete": "",
+    "numero": "20 mil",
+    "chamada": "aposentados de\nRio Branco vivem do INSS",
+    "corpo": "Todo mês, **R$ 85,4 milhões** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k1",
+    "name": "ac-rio-branco-k1",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "cheio",
+    "manchetePx": 87,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Rio Branco (AC)",
+    "manchete": "URAP Francisco\nMeireles\nem risco",
+    "corpo": "Rio Branco recebe **R$ 50,3 milhões por ano** do SUS federal para as suas **125 UBS**. Em média, **R$ 403 mil** para cada uma, como a URAP Francisco Roney Rodrigues Meireles. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 125 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k2",
+    "name": "ac-rio-branco-k2",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 170,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 31,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Saúde · Rio Branco (AC)",
+    "manchete": "Diabético\nna mão",
+    "numero": "210",
+    "chamada": "diabéticos, em média, na área de cada UBS de Rio Branco, como a URAP Francisco Meireles",
+    "corte_1": "R$ 403 mil por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 3,2 milhões por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 13,9 milhões por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 125 UBS; repasse da atenção primária ÷ 125 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k3",
+    "name": "ac-rio-branco-k3",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "cheio",
+    "manchetePx": 64,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Rio Branco (AC)",
+    "manchete": "Merenda da\nEscola Vovó Mocinha\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **364 crianças** da Escola Vovó Mocinha, no bairro Conjunto Xavier Maia, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 12022632)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k4",
+    "name": "ac-rio-branco-k4",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Rio Branco (AC)",
+    "manchete": "Escola\nem risco",
+    "numero": "364",
+    "chamada": "crianças na pré-escola da Escola Vovó Mocinha",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "16 turmas e 15 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 12022632) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k5",
+    "name": "ac-rio-branco-k5",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "cheio",
+    "manchetePx": 68,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Rio Branco (AC)",
+    "manchete": "20 mil aposentados\nem risco",
+    "corpo": "Em Rio Branco, **20 mil aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-rio-branco-k6",
+    "name": "ac-rio-branco-k6",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Rio Branco (AC)",
+    "manchete": "Aposentado\nem risco",
+    "numero": "20 mil",
+    "chamada": "aposentados de Rio Branco vivem do INSS",
+    "corpo": "Todo mês, **R$ 85,4 milhões** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Agencia de Noticas do Acre (CC BY 2.0, Wikipédia)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  }
+ ],
+ "nomes": {
+  "regra": "pares",
+  "par": 1,
+  "bairro": "Adalberto Sena",
+  "saude_generica": false,
+  "saude_card": "URAP Francisco Meireles",
+  "saude_completo": "URAP Francisco Roney Rodrigues Meireles",
+  "escola_card": "Escola Vovó Mocinha",
+  "escola_completo": "Escola Vovó Mocinha",
+  "saude_lat": "-9.93349",
+  "saude_lon": "-67.82568",
+  "escola_lat": "-9.93945",
+  "escola_lon": "-67.814711"
+ }
+}

@@ -1,0 +1,395 @@
+{
+ "municipio": {
+  "cod_ibge": "1200138",
+  "municipio": "Bujari",
+  "uf": "AC",
+  "populacao_2022": "12917",
+  "ubs": "6",
+  "ama": "0",
+  "emei": "8",
+  "inss_beneficios": "1061",
+  "inss_aposentadorias": "586",
+  "inss_pensoes": "118",
+  "inss_auxilios": "60",
+  "inss_assistenciais": "291",
+  "inss_valor_mensal": "1437061",
+  "fns_aps": "1887717.01",
+  "fns_aps_emendas": "4300001.00",
+  "fns_farmacia": "118650.80",
+  "fns_mac": "0.00",
+  "fns_total": "8989822.31",
+  "adultos_2022": "8626"
+ },
+ "ubs": {
+  "cod_ibge": "1200138",
+  "municipio": "Bujari",
+  "uf": "AC",
+  "populacao_2022": "12917",
+  "tipo": "UBS",
+  "nome": "Unidade de Apoio 1 ESF Rural",
+  "endereco": "Ramal Linha Nova Km 16 Ramal Samauma, 16 · Zona Rural",
+  "bairro": "Zona Rural",
+  "cep": "69926000",
+  "telefone": "",
+  "codigo": "CNES 9792937",
+  "etapas": "",
+  "matriculas_pre": ""
+ },
+ "emei": {
+  "cod_ibge": "1200138",
+  "municipio": "Bujari",
+  "uf": "AC",
+  "populacao_2022": "12917",
+  "tipo": "EMEI",
+  "nome": "Esc Esc Paraiso da Crianca",
+  "endereco": "Rua Jose Acrisio Alves de Melo Maciel, 208 Na Rua do Forum · Centro",
+  "bairro": "Centro",
+  "cep": "69926000",
+  "telefone": "68 992048358",
+  "codigo": "INEP 12022284",
+  "etapas": "Pré-escola",
+  "matriculas_pre": "249"
+ },
+ "numeros": {
+  "apos": "586",
+  "apos_frase": "586 aposentados",
+  "apos_real": true,
+  "ubs": 6,
+  "aps": 1887717.01,
+  "farmacia": 118650.8,
+  "mac": 0.0,
+  "adultos": 8626,
+  "diab": 150,
+  "crian": 249,
+  "crian_real": true,
+  "integral": 1,
+  "turmas": 10,
+  "docentes": 9,
+  "merenda_ano": 40985.99999999999,
+  "pdde": 0.0,
+  "inss_mes": 1437061.0
+ },
+ "pedidos": [
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p1",
+    "name": "ac-bujari-p1",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "arte",
+    "manchetePx": 96,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Bujari (AC)",
+    "manchete": "Postos de saúde\nde Bujari\nem risco",
+    "corpo": "Bujari recebe **R$ 1,9 milhão por ano** do SUS federal para as suas **6 UBS**. Em média, **R$ 315 mil** para cada uma. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 6 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p2",
+    "name": "ac-bujari-p2",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 240,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 58,
+    "textoPx": 28,
+    "corpoPx": 29
+   },
+   "data": {
+    "tema": "Saúde · Bujari (AC)",
+    "manchete": "",
+    "numero": "150",
+    "chamada": "diabéticos, em média,\nna área de cada UBS",
+    "corte_1": "R$ 315 mil por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 119 mil por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 9 milhões por ano do Ministério da Saúde para a cidade",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 6 UBS; repasse da atenção primária ÷ 6 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p3",
+    "name": "ac-bujari-p3",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "arte",
+    "manchetePx": 84,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Bujari (AC)",
+    "manchete": "Merenda da\nEscola Paraíso\nda Criança\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **249 crianças** da Escola Paraíso da Criança, no Centro, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 12022284)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p4",
+    "name": "ac-bujari-p4",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 272,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 64,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Educação infantil · Bujari (AC)",
+    "manchete": "",
+    "numero": "249",
+    "chamada": "crianças na pré-escola da Escola Paraíso da Criança",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "10 turmas e 9 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 12022284) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p5",
+    "name": "ac-bujari-p5",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "arte",
+    "manchetePx": 84,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Bujari (AC)",
+    "manchete": "586 aposentados\nde Bujari\nem risco",
+    "corpo": "Em Bujari, **586 aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-p6",
+    "name": "ac-bujari-p6",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 300,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Bujari (AC)",
+    "manchete": "",
+    "numero": "586",
+    "chamada": "aposentados de\nBujari vivem do INSS",
+    "corpo": "Todo mês, **R$ 1,4 milhão** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k1",
+    "name": "ac-bujari-k1",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "cheio",
+    "manchetePx": 81,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · Bujari (AC)",
+    "manchete": "Postos de saúde\nde Bujari\nem risco",
+    "corpo": "Bujari recebe **R$ 1,9 milhão por ano** do SUS federal para as suas **6 UBS**. Em média, **R$ 315 mil** para cada uma. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 6 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k2",
+    "name": "ac-bujari-k2",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 170,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 31,
+    "textoPx": 30,
+    "corpoPx": 31
+   },
+   "data": {
+    "tema": "Saúde · Bujari (AC)",
+    "manchete": "Diabético\nna mão",
+    "numero": "150",
+    "chamada": "diabéticos, em média, na área de cada UBS de Bujari",
+    "corte_1": "R$ 315 mil por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 119 mil por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 9 milhões por ano do Ministério da Saúde para a cidade",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 6 UBS; repasse da atenção primária ÷ 6 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k3",
+    "name": "ac-bujari-k3",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "cheio",
+    "manchetePx": 77,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Bujari (AC)",
+    "manchete": "Merenda da\nEscola Paraíso\nda Criança\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **249 crianças** da Escola Paraíso da Criança, no Centro, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 12022284)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k4",
+    "name": "ac-bujari-k4",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · Bujari (AC)",
+    "manchete": "Escola\nem risco",
+    "numero": "249",
+    "chamada": "crianças na pré-escola da Escola Paraíso da Criança",
+    "corte_1": "A merenda federal está na mira da tesoura",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "10 turmas e 9 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 12022284) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k5",
+    "name": "ac-bujari-k5",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "cheio",
+    "manchetePx": 78,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Bujari (AC)",
+    "manchete": "586 aposentados\nem risco",
+    "corpo": "Em Bujari, **586 aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "ac-bujari-k6",
+    "name": "ac-bujari-k6",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · Bujari (AC)",
+    "manchete": "Aposentado\nem risco",
+    "numero": "586",
+    "chamada": "aposentados de Bujari vivem do INSS",
+    "corpo": "Todo mês, **R$ 1,4 milhão** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Divulgação",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "asset:0354e983d5154f32b42fbc3783696d3c"
+   }
+  }
+ ],
+ "nomes": {
+  "regra": "cidade",
+  "par": 1,
+  "bairro": "Centro",
+  "saude_generica": true,
+  "saude_card": "",
+  "saude_completo": "",
+  "escola_card": "Escola Paraíso da Criança",
+  "escola_completo": "Escola Paraíso da Criança"
+ }
+}

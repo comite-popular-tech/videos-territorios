@@ -1,0 +1,399 @@
+{
+ "municipio": {
+  "cod_ibge": "3550308",
+  "municipio": "São Paulo",
+  "uf": "SP",
+  "populacao_2022": "11451999",
+  "ubs": "0",
+  "ama": "191",
+  "emei": "632",
+  "inss_beneficios": "2375387",
+  "inss_aposentadorias": "1489999",
+  "inss_pensoes": "476455",
+  "inss_auxilios": "108725",
+  "inss_assistenciais": "280685",
+  "inss_valor_mensal": "5664807176",
+  "fns_aps": "787758195.26",
+  "fns_aps_emendas": "9881000.00",
+  "fns_farmacia": "96331290.80",
+  "fns_mac": "2094608359.22",
+  "fns_total": "3538089439.01",
+  "adultos_2022": "9074636"
+ },
+ "ubs": {
+  "cod_ibge": "3550308",
+  "municipio": "São Paulo",
+  "uf": "SP",
+  "populacao_2022": "11451999",
+  "tipo": "AMA",
+  "nome": "AMA Capao Redondo",
+  "endereco": "Avenida Comendador Santana, 774 · Capao Redondo",
+  "bairro": "Capao Redondo",
+  "cep": "05866000",
+  "telefone": "(11)5108-7250",
+  "codigo": "CNES 6218830",
+  "etapas": "",
+  "matriculas_pre": ""
+ },
+ "emei": {
+  "cod_ibge": "3550308",
+  "municipio": "São Paulo",
+  "uf": "SP",
+  "populacao_2022": "11451999",
+  "tipo": "EMEI",
+  "nome": "EMEI Carlos de Laet",
+  "endereco": "Professor Leitao da Cunha, 1732 · Parque Regina",
+  "bairro": "Parque Regina",
+  "cep": "05775200",
+  "telefone": "11 58165820",
+  "codigo": "INEP 35052309",
+  "etapas": "Pré-escola",
+  "matriculas_pre": "561"
+ },
+ "numeros": {
+  "apos": "1,5 milhão",
+  "apos_frase": "1,5 milhão de aposentados",
+  "apos_real": true,
+  "ubs": 191,
+  "aps": 787758195.26,
+  "farmacia": 96331290.8,
+  "mac": 2094608359.22,
+  "adultos": 9074636,
+  "diab": 4850,
+  "crian": 561,
+  "crian_real": true,
+  "integral": 0,
+  "turmas": 18,
+  "docentes": 26,
+  "merenda_ano": 92004.0,
+  "pdde": 13550.0,
+  "inss_mes": 5664807176.0
+ },
+ "pedidos": [
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p1",
+    "name": "sp-sao-paulo-p1",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "arte",
+    "manchetePx": 85,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · São Paulo (SP)",
+    "manchete": "AMA Capão Redondo\nem risco",
+    "corpo": "São Paulo recebe **R$ 788 milhões por ano** do SUS federal para as suas **191 UBS**. Em média, **R$ 4,1 milhões** para cada uma, como a AMA Capão Redondo. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 191 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p2",
+    "name": "sp-sao-paulo-p2",
+    "estilo": "preto",
+    "assunto": "saude",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 208,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 52,
+    "textoPx": 26,
+    "corpoPx": 27
+   },
+   "data": {
+    "tema": "Saúde · São Paulo (SP)",
+    "manchete": "",
+    "numero": "4.850",
+    "chamada": "diabéticos, em média,\nna área de cada UBS,\ncomo a AMA Capão Redondo",
+    "corte_1": "R$ 4,1 milhões por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 96,3 milhões por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 2095 milhões por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 191 UBS; repasse da atenção primária ÷ 191 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p3",
+    "name": "sp-sao-paulo-p3",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "arte",
+    "manchetePx": 69,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · São Paulo (SP)",
+    "manchete": "Merenda da\nEscola Carlos de Laet\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **561 crianças** da Escola Carlos de Laet, no bairro Parque Regina, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 35052309)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p4",
+    "name": "sp-sao-paulo-p4",
+    "estilo": "preto",
+    "assunto": "emei",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 240,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 58,
+    "textoPx": 28,
+    "corpoPx": 29
+   },
+   "data": {
+    "tema": "Educação infantil · São Paulo (SP)",
+    "manchete": "",
+    "numero": "561",
+    "chamada": "crianças na pré-escola da Escola Carlos de Laet",
+    "corte_1": "R$ 13.550 em 2025 direto na conta da escola (PDDE)",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "18 turmas e 26 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 35052309) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · PDDE: FNDE, PDDE Info, pago à escola em 2025 · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p5",
+    "name": "sp-sao-paulo-p5",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "arte",
+    "manchetePx": 84,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · São Paulo (SP)",
+    "manchete": "1,5 milhão de\naposentados\nde São Paulo\nem risco",
+    "corpo": "Em São Paulo, **1,5 milhão de aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-p6",
+    "name": "sp-sao-paulo-p6",
+    "estilo": "preto",
+    "assunto": "aposentados",
+    "layout": "numero",
+    "manchetePx": 96,
+    "numeroPx": 180,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · São Paulo (SP)",
+    "manchete": "",
+    "numero": "1,5 milhão",
+    "chamada": "aposentados de\nSão Paulo vivem do INSS",
+    "corpo": "Todo mês, **R$ 5665 milhões** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k1",
+    "name": "sp-sao-paulo-k1",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "cheio",
+    "manchetePx": 72,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Saúde · São Paulo (SP)",
+    "manchete": "AMA Capão Redondo\nem risco",
+    "corpo": "São Paulo recebe **R$ 788 milhões por ano** do SUS federal para as suas **191 UBS**. Em média, **R$ 4,1 milhões** para cada uma, como a AMA Capão Redondo. Bolsonaro já tentou cortar **59% da Farmácia Popular**, que dá remédio de graça.",
+    "fonte": "Média: repasse federal da atenção primária ÷ 191 UBS do município, set/2025 a ago/2026 (Portal da Transparência e CNES) · Farmácia Popular: proposta de Orçamento 2023 do governo Bolsonaro, R$ 2,04 bi para R$ 842 mi",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k2",
+    "name": "sp-sao-paulo-k2",
+    "estilo": "cor",
+    "assunto": "saude",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 150,
+    "width": 1080,
+    "height": 1350,
+    "fields": {},
+    "chamadaPx": 29,
+    "textoPx": 28,
+    "corpoPx": 29
+   },
+   "data": {
+    "tema": "Saúde · São Paulo (SP)",
+    "manchete": "Diabético\nna mão",
+    "numero": "4.850",
+    "chamada": "diabéticos, em média, na área de cada UBS de São Paulo, como a AMA Capão Redondo",
+    "corte_1": "R$ 4,1 milhões por ano do SUS federal, em média, para cada UBS",
+    "corte_2": "R$ 96,3 milhões por ano de remédio da farmácia básica na cidade",
+    "corte_3": "R$ 2095 milhões por ano para hospital, exame e cirurgia",
+    "fonte": "Estimativas: adultos (Censo 2022) × 10,2% com diabetes (Vigitel 2023, adultos das capitais) ÷ 191 UBS; repasse da atenção primária ÷ 191 UBS · Portal da Transparência, set/2025 a ago/2026 · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k3",
+    "name": "sp-sao-paulo-k3",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "cheio",
+    "manchetePx": 58,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · São Paulo (SP)",
+    "manchete": "Merenda da\nEscola Carlos de Laet\nem risco",
+    "corpo": "Flávio Bolsonaro promete passar a **tesoura** nos gastos federais. A merenda das **561 crianças** da Escola Carlos de Laet, no bairro Parque Regina, está na mira. **Bolsonaro já fez isso:** vetou o reajuste da merenda em 2022.",
+    "fonte": "Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · Escola: Censo Escolar 2024 (INEP 35052309)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k4",
+    "name": "sp-sao-paulo-k4",
+    "estilo": "cor",
+    "assunto": "emei",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 200,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Educação infantil · São Paulo (SP)",
+    "manchete": "Escola\nem risco",
+    "numero": "561",
+    "chamada": "crianças na pré-escola da Escola Carlos de Laet",
+    "corte_1": "R$ 13.550 em 2025 direto na conta da escola (PDDE)",
+    "corte_2": "Bolsonaro já vetou o reajuste da merenda em 2022",
+    "corte_3": "18 turmas e 26 professores na pré-escola",
+    "fonte": "Censo Escolar 2024 (INEP 35052309) · Merenda: veto de Bolsonaro ao reajuste do PNAE na LDO 2023 (ago/2022) · PDDE: FNDE, PDDE Info, pago à escola em 2025 · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k5",
+    "name": "sp-sao-paulo-k5",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "cheio",
+    "manchetePx": 78,
+    "numeroPx": 320,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · São Paulo (SP)",
+    "manchete": "1,5 milhão de\naposentados\nem risco",
+    "corpo": "Em São Paulo, **1,5 milhão de aposentados** vivem do INSS. De 2023 a 2026, o salário mínimo subiu **quase 12% acima da inflação**. Nos quatro anos de Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE)",
+    "selo": "",
+    "carimbo": "Em risco"
+   }
+  },
+  {
+   "template": {
+    "kind": "card",
+    "id": "sp-sao-paulo-k6",
+    "name": "sp-sao-paulo-k6",
+    "estilo": "cor",
+    "assunto": "aposentados",
+    "layout": "claro",
+    "manchetePx": 88,
+    "numeroPx": 120,
+    "width": 1080,
+    "height": 1350,
+    "fields": {}
+   },
+   "data": {
+    "tema": "Aposentados · São Paulo (SP)",
+    "manchete": "Aposentado\nem risco",
+    "numero": "1,5 milhão",
+    "chamada": "aposentados de São Paulo vivem do INSS",
+    "corpo": "Todo mês, **R$ 5665 milhões** do INSS entram na cidade e giram na farmácia e no mercado. Com Lula, o mínimo ganhou **quase 12%** acima da inflação; com Bolsonaro, **pouco mais de 1%**.",
+    "fonte": "Aposentadorias e valor mensal do INSS em dez/2025 (Ministério da Previdência) · Salário mínimo: decretos de 2019 a 2026 e INPC (IBGE) · Foto: Thomas Hobbs (CC BY-SA 2.0, Wikimedia Commons)",
+    "selo": "",
+    "carimbo": "Em risco",
+    "arte": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled"
+   }
+  }
+ ],
+ "nomes": {
+  "regra": "pares",
+  "par": 1,
+  "bairro": "Capão Redondo",
+  "saude_generica": false,
+  "saude_card": "AMA Capão Redondo",
+  "saude_completo": "AMA Capão Redondo",
+  "escola_card": "Escola Carlos de Laet",
+  "escola_completo": "Escola Carlos de Laet",
+  "saude_lat": "-23.642068",
+  "saude_lon": "-46.753255",
+  "escola_lat": "-23.6391",
+  "escola_lon": "-46.7502"
+ }
+}
