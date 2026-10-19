@@ -54,7 +54,7 @@ Opções do lote no cabeçalho de [lote.mjs](lote.mjs): `--720` (cerca de 40% ma
 Em vez de uma máquina só, até 20 máquinas do GitHub rendem ao mesmo tempo ([.github/workflows/videos.yml](../.github/workflows/videos.yml)).
 Dá para disparar de dois lugares:
 
-**No repositório do comitê**: Actions → **videos** → **Run workflow**. Escolha quantas máquinas (`jobs`, padrão 20) e
+**Neste repositório** (quem tem acesso de escrita): Actions → **videos** → **Run workflow**. Escolha quantas máquinas (`jobs`, padrão 20) e
 quantos territórios cada uma pega antes de parar (`limite`, 0 = até a fila esvaziar) e confirme.
 
 **No seu fork, com as 20 máquinas da sua conta** (qualquer voluntário com conta no GitHub):
@@ -73,9 +73,8 @@ de cada vídeo, fica na aba Summary da execução.
 
 Sem endereço da fila, cada máquina renderiza só o kit de exemplo (4 territórios) e deixa os MP4 como artifact da
 execução (`videos-exemplo-N`): é o jeito de testar o workflow. As máquinas do GitHub não têm placa de vídeo
-(`--gl swangle`): medido em 19/10/2026, cada vídeo levou de 66 a 91 s (média 83 s) numa máquina de 2 núcleos, a que
-o GitHub dá para repositório privado; repositório público ganha máquina de 4 núcleos, que deve ficar perto da metade.
-Com 2 núcleos, 20 máquinas fazem os 6.121 territórios em cerca de 7 h, ou seja, duas rodadas de 5h50; com 4 núcleos
-cabe numa rodada só. Preparar cada máquina leva menos de 1 min quando o cache pega e uns 3 min na primeira vez.
+(`--gl swangle`): medido em 19/10/2026, cada vídeo levou de 27 a 40 s (média 34 s) na máquina de 4 núcleos que o
+GitHub dá a repositório público, contra 20 a 30 s com placa. Nesse ritmo, 20 máquinas fazem os 6.121 territórios em
+cerca de 3 h, numa rodada só. Preparar cada máquina leva menos de 1 min quando o cache pega e uns 2 min na primeira vez.
 
 A voz sintética ainda precisa ser aprovada pela coordenação.
