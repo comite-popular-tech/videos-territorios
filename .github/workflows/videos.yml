@@ -1,0 +1,105 @@
+# Renderiza os vídeos de Saúde (video/) em várias máquinas do GitHub Actions ao mesmo tempo.
+# Dispare em Actions → videos → Run workflow. Cada máquina roda video/ajudar.sh, que pega territórios da fila
+# (variável do repositório FILA_URL, do Worker com a fila e os fundos no R2) até ela esvaziar. Sem FILA_URL,
+# cada máquina renderiza o kit de exemplo (4 territórios) e sobe os MP4 como artifact: serve de teste e de medição.
+name: videos
+
+on:
+  workflow_dispatch:
+    inputs:
+      jobs:
+        description: 'Máquinas em paralelo (o GitHub dá até 20)'
+        type: number
+        default: 20
+      limite:
+        description: 'Territórios por máquina (0 = até a fila esvaziar)'
+        type: number
+        default: 0
+      conc:
+        description: 'Abas do Chrome por vídeo (o runner tem 4 vCPU)'
+        type: number
+        default: 4
+      sem_voz:
+        description: 'Sem locução (só para testar o render)'
+        type: boolean
+        default: false
+      trabalho:
+        description: 'Trabalho da fila (ex. video-saude)'
+        type: string
+        default: video-saude
+      fila_url:
+        description: 'URL do Worker da fila (vazio = variável FILA_URL do repositório; sem as duas, só o kit de exemplo)'
+        type: string
+        default: ''
+
+# Roda igual num fork de voluntário: não precisa de segredo, não escreve no repositório, só lê o código.
+permissions:
+  contents: read
+
+jobs:
+  matriz:
+    runs-on: ubuntu-latest
+    outputs:
+      lista: ${{ steps.m.outputs.lista }}
+    steps:
+      - id: m
+        run: echo "lista=$(node -e 'console.log(JSON.stringify(Array.from({length:+process.argv[1]},(_,i)=>i+1)))' '${{ inputs.jobs }}')" >> "$GITHUB_OUTPUT"
+
+  render:
+    needs: matriz
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # o Actions corta em 6 h
+    strategy:
+      fail-fast: false
+      matrix:
+        n: ${{ fromJSON(needs.matriz.outputs.lista) }}
+    env:
+      FILA_URL: ${{ inputs.fila_url || vars.FILA_URL }}
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache do node_modules (inclui o Chrome do Remotion) e do Chromium do Playwright
+        uses: actions/cache@v4
+        with:
+          path: |
+            video/node_modules
+            .cache/ms-playwright
+          key: video-${{ runner.os }}-${{ hashFiles('video/package.json') }}
+
+      - name: Dependências
+        working-directory: video
+        run: |
+          npm install --no-audit --no-fund
+          npx remotion browser ensure
+          npx playwright install --with-deps chromium
+          pip install --quiet edge-tts numpy
+          python trilha.py
+
+      - name: Render
+        run: bash video/ajudar.sh --trabalho '${{ inputs.trabalho }}' --gl swangle --limite ${{ inputs.limite }} --conc ${{ inputs.conc }} ${{ inputs.sem_voz && '--sem-voz' || '' }}
+
+      - name: Tempo por vídeo
+        if: always()
+        run: |
+          if [ -f video/lote-relatorio.csv ]; then
+            { echo '### Relatório do lote (máquina ${{ matrix.n }})'; echo; echo '```'; cat video/lote-relatorio.csv; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Vídeos do kit de exemplo (só quando não há fila)
+        if: always() && env.FILA_URL == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos-exemplo-${{ matrix.n }}
+          path: |
+            saida/territorios/*/video/saude.mp4
+            video/lote-relatorio.csv
+          if-no-files-found: warn

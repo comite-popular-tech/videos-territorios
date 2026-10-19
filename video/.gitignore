@@ -1,0 +1,12 @@
+node_modules/
+public/*.jpg
+vozes/
+mapas/
+lote-relatorio.csv
+!public/flavio-tesoura.jpg
+public/trilha.wav
+public/carteira-vazia/*
+!public/carteira-vazia/props.json
+hyperframes-teste/
+*.log
+galeria-online/

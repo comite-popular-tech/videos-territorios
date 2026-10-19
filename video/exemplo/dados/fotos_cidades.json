@@ -1,0 +1,57 @@
+{
+ "sp-sao-paulo": {
+  "verbete": "Commons",
+  "arquivo": "File:Sao Paulo Skyline in Brazil.jpg",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Sao_Paulo_Skyline_in_Brazil.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "pagina": "https://commons.wikimedia.org/wiki/File:Sao_Paulo_Skyline_in_Brazil.jpg",
+  "autor": "Thomas Hobbs",
+  "licenca": "CC BY-SA 2.0",
+  "tema": "",
+  "raspagem": true,
+  "status": "revisada",
+  "revisada": "2026-10-19T00:35:40.000Z",
+  "por": "votação",
+  "votos": {
+   "n": 4,
+   "media": 1.0,
+   "n_sim": 2
+  }
+ },
+ "ac-rio-branco": {
+  "verbete": "Rio Branco",
+  "arquivo": "File:Bairro_Centro_Rio_Branco_(cropped).jpg",
+  "url": "https://upload.wikimedia.org/wikipedia/commons/9/91/Bairro_Centro_Rio_Branco_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail_unscaled",
+  "pagina": "https://commons.wikimedia.org/wiki/File:Bairro_Centro_Rio_Branco_(cropped).jpg",
+  "autor": "Agencia de Noticas do Acre",
+  "licenca": "CC BY 2.0",
+  "status": "revisada",
+  "revisada": "2026-10-13T09:29:58.294Z",
+  "por": "u_vQ8NDjMVkPro7MF6sKzaRQ",
+  "votos": {
+   "n": 2,
+   "media": 2.0,
+   "n_sim": 2
+  }
+ },
+ "ac-bujari": {
+  "verbete": "Enviada",
+  "arquivo": "0354e983d5154f32b42fbc3783696d3c",
+  "url": "asset:0354e983d5154f32b42fbc3783696d3c",
+  "pagina": "",
+  "autor": "Divulgação",
+  "licenca": "cedida",
+  "status": "enviada",
+  "revisada": "2026-10-13T19:34:59.571Z",
+  "por": "ranimendes@gmail.com",
+  "votos": {
+   "n": 6,
+   "media": 1.0,
+   "n_sim": 2
+  }
+ },
+ "ba-aiquara": {
+  "sem_foto": "rejeitadas na votação",
+  "status": "sem_foto",
+  "revisada": "2026-10-18T23:13:49.000Z"
+ }
+}

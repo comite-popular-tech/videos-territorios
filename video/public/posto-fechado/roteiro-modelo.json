@@ -1,0 +1,24 @@
+{
+ "campos": {
+  "cidade": "nome do município (ficha)",
+  "bairro": "bairro da UBS",
+  "rua": "rua da UBS, sem número (CNES)",
+  "aps_ano": "piso federal da atenção primária por ano, falado por extenso (indicador fns_aps)"
+ },
+ "cenas": [
+  "Em {cidade}, a Rosângela era agente de saúde. Toda terça, batia na casa da Dona Cida, no {bairro}.",
+  "No posto da {rua}, todo mundo era atendido: criança, grávida, idoso.",
+  "Até que o dinheiro do governo federal parou de chegar.",
+  "Numa segunda-feira, o portão do posto amanheceu com corrente e cadeado.",
+  "Rosângela foi mandada embora. No último café juntas, mediu a pressão da Dona Cida. Estava alta.",
+  "O remédio da pressão acabou. Dona Cida passou a partir o comprimido ao meio, para durar.",
+  "O hospital ficava longe. Ela passou o dia inteiro num corredor e voltou sem consulta.",
+  "Depois disso, não teve mais forças para sair de casa.",
+  "Rosângela arrumou faxina longe dali. Ligava toda noite. Uma noite, Dona Cida não atendeu.",
+  "Ela correu até a casa dela, do jeito que ia toda terça.",
+  "A porta estava aberta. Dona Cida tinha morrido sozinha, com duas xícaras de café na mesa.",
+  "O posto da {rua} não fechou sozinho. Quem cortou o dinheiro tem nome: Flávio Bolsonaro.",
+  "Com o corte, os {aps_ano} que {cidade} recebe por ano para os postos de saúde estão em perigo.",
+  "Essa história ainda não aconteceu. Ela ainda pode ter outro final."
+ ]
+}
