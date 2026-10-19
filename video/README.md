@@ -20,8 +20,8 @@ jeito de falar do card de Saúde e é montado todo por código:
 Precisa de Node 20+, Python 3.10+, Git e o Google Chrome.
 
 ```bash
-git clone https://github.com/comite-popular-tech/producao-de-conteudo-para-municipios.git
-cd producao-de-conteudo-para-municipios/video
+git clone https://github.com/comite-popular-tech/videos-territorios.git
+cd videos-territorios/video
 npm i
 npx playwright install chromium   # converte o mapa do município em imagem
 pip install edge-tts numpy
@@ -36,6 +36,32 @@ Bujari com foto e Aiquara com mapa), sem precisar dos dados brutos. Os vídeos s
 para conferir sem assistir.
 
 Para ver e mexer nas cenas com prévia ao vivo: `npm run studio`.
+
+## Ajudar a produzir os vídeos
+
+São 6.121 vídeos, e uma máquina só leva quase dois dias. Quem quiser ajudar roda isto (Linux, macOS ou Git Bash no
+Windows; precisa de Node 20+, Python 3.10+, Git e o Google Chrome):
+
+```bash
+git clone https://github.com/comite-popular-tech/videos-territorios.git
+cd videos-territorios
+bash video/ajudar.sh
+```
+
+Na primeira vez o script instala o que falta (`npm i` em video/, `pip install edge-tts numpy`, `python trilha.py`).
+Ele pede um lote de territórios à fila, baixa só as fotos e os dados deles, renderiza e devolve os vídeos
+prontos. Repete até a fila esvaziar; pode parar com Ctrl+C e rodar de novo quando quiser (o que ficou pela metade volta
+para a fila em 2 horas). Sem placa de vídeo, use `bash video/ajudar.sh --gl swangle`; para fazer só alguns,
+`--limite 20`. O andamento de todo mundo fica em https://fila-videos.boralula.workers.dev/.
+
+No Windows sem Git Bash: `powershell -ExecutionPolicy Bypass -File videojudar.ps1`.
+
+A fila é genérica: cada *trabalho* (hoje só `video-saude`, o padrão do ajudar.sh) tem um script em
+[trabalhos/](trabalhos/) que recebe as entradas de um lote e deixa a saída de cada território numa pasta; o
+[ajudar.mjs](ajudar.mjs) cuida do resto (lote, download, upload, pronto). `--trabalho outro` escolhe outro trabalho.
+Para quem cuida da fila (no repositório privado do comitê, que tem os dados): `python video/fila/publicar.py` publica o
+Worker e `python video/kit_fundos.py` gera e sobe o kit (fundos em 1080×1920 e dados de cada território), cadastra o trabalho
+e semeia a fila na ordem combinada; `--versao 2` manda refazer tudo (troca de voz, por exemplo).
 
 ## Todos os territórios
 
@@ -77,4 +103,4 @@ execução (`videos-exemplo-N`): é o jeito de testar o workflow. As máquinas d
 GitHub dá a repositório público, contra 20 a 30 s com placa. Nesse ritmo, 20 máquinas fazem os 6.121 territórios em
 cerca de 3 h, numa rodada só. Preparar cada máquina leva menos de 1 min quando o cache pega e uns 2 min na primeira vez.
 
-A voz sintética ainda precisa ser aprovada pela coordenação.
+A voz sintética (edge-tts, Antonio) foi aprovada pela coordenação em 19/10/2026.

@@ -68,8 +68,9 @@ export function dadosCidade(slug) {
   const cs = slug.split('--')[0]; // foto e mapa da cidade
   const f = FOTOS[cs];
   const temFoto = f && f.url && ['revisada', 'enviada'].includes(f.status) && fs.existsSync(D(`dados/brutos/fotos_cidades/${cs}.jpg`));
-  const mapa = D(`dados/brutos/artes_mapa/${cs}-saude.svg`);
-  if (!temFoto && !fs.existsSync(mapa)) return { slug, erro: 'sem foto aprovada e sem mapa' };
+  // o mapa pode vir do SVG dos brutos (o lote rasteriza) ou já em JPEG em video/mapas/ (kit da fila, ajudar.mjs)
+  const temMapa = fs.existsSync(D(`dados/brutos/artes_mapa/${cs}-saude.svg`)) || fs.existsSync(path.join(RAIZ, 'video/mapas', `${cs}.jpg`));
+  if (!temFoto && !temMapa) return { slug, erro: 'sem foto aprovada e sem mapa' };
   const fundo = temFoto ? 'foto' : 'mapa';
   // mapa: JPEG feito pelo video/mapas.mjs a partir do SVG (o lote roda antes de renderizar)
   const arquivoFundo = temFoto ? `${dadosRel()}dados/brutos/fotos_cidades/${cs}.jpg` : `video/mapas/${cs}.jpg`;

@@ -3,29 +3,32 @@
 //   node lote.mjs ce-iguatu sp-sao-paulo--capao-redondo [--frames]       só esses
 //   node lote.mjs --todas [--fundo foto|mapa] [--limite 50] [--amostra 50]
 //   node lote.mjs --exemplo --todas                   os 4 territórios do kit em video/exemplo/ (sem os brutos)
+//   node lote.mjs --dados video/kit <slug ...>         outra pasta de dados (mesmo desenho do exemplo/; é o que o ajudar.mjs usa)
 //   opções: --paralelo 1 (cidades ao mesmo tempo)  --conc 8 (abas por cidade)  --720  --pular N  --voz antonio|francisca|thalita
-//           --sem-voz  --refazer  --frames (5 PNG de conferência por cidade)  --gl angle|swangle (placa de vídeo ou só CPU)
+//           --gl angle (placa de vídeo; swangle = só CPU, para máquina sem placa ou GitHub Actions)
+//           --sem-voz  --refazer  --frames (5 PNG de conferência por cidade)
 // Saída: saida/territorios/<slug>/video/saude.mp4 (+ saude.props.json); relatório em video/lote-relatorio.csv.
 // Precisa, uma vez: npm i (nesta pasta), pip install edge-tts, python trilha.py
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import http from 'http';
-import os from 'os';
 import { execFileSync, spawn } from 'child_process';
 import { bundle } from '@remotion/bundler';
 import { openBrowser, renderMedia, renderStill, selectComposition } from '@remotion/renderer';
 import { RAIZ, dadosCidade, dadosRel } from './cidade.mjs';
 
 const args = process.argv.slice(2);
-if (args.includes('--exemplo')) process.env.VIDEO_DADOS = 'video/exemplo'; // vale também para o mapas.mjs
 const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
+if (args.includes('--exemplo')) process.env.VIDEO_DADOS = 'video/exemplo'; // vale também para o mapas.mjs
+if (opc('--dados')) process.env.VIDEO_DADOS = opc('--dados').split(path.sep).join('/');
 const flag = (n) => args.includes(n);
 const VOZES = { antonio: 'pt-BR-AntonioNeural', francisca: 'pt-BR-FranciscaNeural', thalita: 'pt-BR-ThalitaMultilingualNeural' };
 const voz = VOZES[opc('--voz', 'antonio')];
-const PARALELO = +opc('--paralelo', 1), CONC = Math.min(+opc('--conc', 8), os.cpus().length), GL = opc('--gl', 'angle');
+const PARALELO = +opc('--paralelo', 1), CONC = Math.min(+opc('--conc', 8), os.cpus().length); // o Remotion recusa mais abas que núcleos
 const ESCALA = flag('--720') ? 2 / 3 : 1; // 720x1280: ~40% mais rápido
 const FPS = 30, ATRASO_VOZ = 8, FOLGA = 14, MINIMO = [75, 150, 120, 120, 120], FECHO_EXTRA = 30;
-const VALOR = new Set(['--fundo', '--limite', '--amostra', '--paralelo', '--conc', '--voz', '--pular', '--gl']);
+const VALOR = new Set(['--fundo', '--limite', '--amostra', '--paralelo', '--conc', '--voz', '--pular', '--dados', '--gl']);
 const DIR_VOZ = path.join(RAIZ, 'video', 'vozes', 'territorios'); // separado das vozes do vídeo por cidade (saida/brasil)
 const REL = path.join(RAIZ, 'video', 'lote-relatorio.csv');
 
@@ -87,8 +90,8 @@ const BASE = `http://127.0.0.1:${servidor.address().port}/`;
 // ---------------------------------------------------------------- render
 console.log('preparando o projeto...');
 const serveUrl = await bundle({ entryPoint: path.join(RAIZ, 'video/src/index.ts'), publicDir: path.join(RAIZ, 'video/public') });
-// gl angle usa a placa de vídeo: 22 s por vídeo contra 43 s só na CPU (swangle, o único que funciona em máquina sem placa, como o GitHub Actions), medido em 14/10
-const browser = await openBrowser('chrome', { chromiumOptions: { gl: GL } });
+// gl angle usa a placa de vídeo: 22 s por vídeo contra 43 s só na CPU (swangle), medido em 14/10
+const browser = await openBrowser('chrome', { chromiumOptions: { gl: opc('--gl', 'angle') } });
 if (!fs.existsSync(REL)) fs.writeFileSync(REL, 'em,slug,situacao,fundo,segundos_video,segundos_render,obs\n');
 const registra = (c, sit, dur, seg, obs = '') =>
   fs.appendFileSync(REL, [new Date().toISOString(), c.slug, sit, c.fundo ?? '', dur ?? '', seg ?? '', `"${String(obs).replace(/"/g, "'")}"`].join(',') + '\n');
@@ -143,4 +146,4 @@ await Promise.all(Array.from({ length: PARALELO }, async () => {
 await browser.close({ silent: true });
 servidor.close();
 console.log(`fim: ${feitas} feitas, ${puladas} já prontas, ${falhas} erros. Relatório: ${REL}`);
-if (falhas && !feitas) process.exitCode = 1; // nada saiu: avisa quem chamou (ajudar.sh, Actions)
+if (falhas && !feitas) process.exitCode = 1; // nada saiu: avisa quem chamou

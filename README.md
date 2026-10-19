@@ -47,8 +47,7 @@ variável `FILA_URL` apontando para a fila (placa de vídeo: `--gl angle`, só C
 
 ## Avisos
 
-- A voz é sintética (edge-tts, `pt-BR-AntonioNeural`) e ainda precisa ser aprovada pela coordenação da campanha:
-  os vídeos ainda não são para publicar.
+- A voz é sintética (edge-tts, `pt-BR-AntonioNeural`), aprovada pela coordenação da campanha em 19/10/2026.
 - Os dados completos (fotos e mapas, 1,2 GB) não ficam aqui: as máquinas recebem o fundo de cada território pela fila.
   O kit de exemplo em `video/exemplo/` tem 4 territórios para teste.
 - Nomes de cidade seguem o padrão "Cidade - UF".

@@ -1,7 +1,7 @@
 # Renderiza os vídeos de Saúde (video/) em várias máquinas do GitHub Actions ao mesmo tempo.
-# Dispare em Actions → videos → Run workflow. Cada máquina roda video/ajudar.sh, que pega territórios da fila
-# (variável do repositório FILA_URL, do Worker com a fila e os fundos no R2) até ela esvaziar. Sem FILA_URL,
-# cada máquina renderiza o kit de exemplo (4 territórios) e sobe os MP4 como artifact: serve de teste e de medição.
+# Dispare em Actions → videos → Run workflow (neste repositório ou num fork). Cada máquina roda video/ajudar.sh, que
+# pede lotes de territórios à fila (Worker público, entrada fila_url), renderiza, sobe os MP4 e para quando a fila
+# esvazia. Com `exemplo` marcado, renderiza só o kit de exemplo (4 territórios) e sobe os MP4 como artifact: teste.
 name: videos
 
 on:
@@ -28,9 +28,13 @@ on:
         type: string
         default: video-saude
       fila_url:
-        description: 'URL do Worker da fila (vazio = variável FILA_URL do repositório; sem as duas, só o kit de exemplo)'
+        description: 'URL do Worker da fila'
         type: string
-        default: ''
+        default: 'https://fila-videos.boralula.workers.dev'
+      exemplo:
+        description: 'Só o kit de exemplo (4 territórios, sem fila; MP4 saem como artifact)'
+        type: boolean
+        default: false
 
 # Roda igual num fork de voluntário: não precisa de segredo, não escreve no repositório, só lê o código.
 permissions:
@@ -54,7 +58,7 @@ jobs:
       matrix:
         n: ${{ fromJSON(needs.matriz.outputs.lista) }}
     env:
-      FILA_URL: ${{ inputs.fila_url || vars.FILA_URL }}
+      FILA_URL: ${{ inputs.fila_url || vars.FILA_URL || 'https://fila-videos.boralula.workers.dev' }}
       PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +89,20 @@ jobs:
           python trilha.py
 
       - name: Render
-        run: bash video/ajudar.sh --trabalho '${{ inputs.trabalho }}' --gl swangle --limite ${{ inputs.limite }} --conc ${{ inputs.conc }} ${{ inputs.sem_voz && '--sem-voz' || '' }}
+        env:
+          TRABALHO: ${{ inputs.trabalho || 'video-saude' }}
+          LIMITE: ${{ inputs.limite || 0 }}
+          CONC: ${{ inputs.conc || 4 }}
+          SEM_VOZ: ${{ inputs.sem_voz && '--sem-voz' || '' }}
+          EXEMPLO: ${{ inputs.exemplo }}
+          QUEM: actions-${{ github.repository_owner }}-${{ matrix.n }}
+        run: |
+          if [ "$EXEMPLO" = "true" ]; then
+            cd video && node lote.mjs --exemplo --todas --gl swangle --conc "$CONC" $SEM_VOZ
+          else
+            LIM=""; [ "$LIMITE" -gt 0 ] && LIM="--limite $LIMITE"
+            bash video/ajudar.sh --trabalho "$TRABALHO" --quem "$QUEM" $LIM --gl swangle --conc "$CONC" $SEM_VOZ
+          fi
 
       - name: Tempo por vídeo
         if: always()
@@ -94,8 +111,8 @@ jobs:
             { echo '### Relatório do lote (máquina ${{ matrix.n }})'; echo; echo '```'; cat video/lote-relatorio.csv; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Vídeos do kit de exemplo (só quando não há fila)
-        if: always() && env.FILA_URL == ''
+      - name: Vídeos do kit de exemplo
+        if: always() && inputs.exemplo
         uses: actions/upload-artifact@v4
         with:
           name: videos-exemplo-${{ matrix.n }}
