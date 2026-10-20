@@ -34,7 +34,7 @@ jobs:
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: 8
+      max-parallel: 20
       matrix:
         uf: ${{ fromJson(needs.ufs.outputs.lista) }}
     steps:
