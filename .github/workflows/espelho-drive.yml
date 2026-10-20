@@ -1,0 +1,64 @@
+# Espelho do acervo no Google Drive, uma pasta por cidade (espelho/espelho_drive.py). Um job por UF; pula o que já
+# existe no Drive, então pode rodar de novo para completar (ex.: depois que mais vídeos em massa chegarem ao R2).
+# Secret: ESPELHO_DRIVE_TOKEN (o JSON do `rclone authorize "drive"` da conta que sobe; desde 20/10, a do Gui) e, se houver,
+# ESPELHO_DRIVE_CLIENT_ID / ESPELHO_DRIVE_CLIENT_SECRET (client próprio no Google Cloud; o do rclone sai do ar em 2026).
+# Todos os jobs usam a mesma conta e o Drive limita escrita por conta: max-parallel baixo.
+name: espelho-drive
+on:
+  workflow_dispatch:
+    inputs:
+      ufs:
+        description: "UFs separadas por espaço (vazio = todas)"
+        default: ""
+      so:
+        description: "materiais: video,cards,massa,atalhos,links (vazio = todos)"
+        default: ""
+      simular:
+        description: "só listar o que faria"
+        type: boolean
+        default: false
+jobs:
+  ufs:
+    runs-on: ubuntu-latest
+    outputs:
+      lista: ${{ steps.l.outputs.lista }}
+    steps:
+      - id: l
+        run: |
+          u="${{ inputs.ufs }}"
+          [ -z "$u" ] && u="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO"
+          echo "lista=$(printf '%s\n' $u | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+  espelho:
+    needs: ufs
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        uf: ${{ fromJson(needs.ufs.outputs.lista) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: espelho
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: rclone e playwright
+        run: |
+          curl -fsSL https://rclone.org/install.sh | sudo bash
+          mkdir -p /tmp/pw && cd /tmp/pw && npm i --no-save playwright@1 && npx playwright install --with-deps chromium
+      - name: espelho
+        env:
+          RCLONE_CONFIG_ESPELHO_TYPE: drive
+          RCLONE_CONFIG_ESPELHO_SCOPE: drive
+          RCLONE_CONFIG_ESPELHO_TOKEN: ${{ secrets.ESPELHO_DRIVE_TOKEN }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_ID: ${{ secrets.ESPELHO_DRIVE_CLIENT_ID }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_SECRET: ${{ secrets.ESPELHO_DRIVE_CLIENT_SECRET }}
+        run: |
+          s="${{ inputs.so }}"
+          python -I espelho/espelho_drive.py --uf ${{ matrix.uf }} --jobs 3 --node-modules /tmp/pw/node_modules \
+            ${s:+--so $s} ${{ inputs.simular && '--simular' || '' }}
