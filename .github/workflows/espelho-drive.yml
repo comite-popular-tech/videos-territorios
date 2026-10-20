@@ -27,7 +27,10 @@ jobs:
         run: |
           u="${{ inputs.ufs }}"
           [ -z "$u" ] && u="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO"
-          echo "lista=$(printf '%s\n' $u | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+          # UF grande em fatias, um job cada (cidades k-ésima de n): MG 6, SP 5, RS 4, BA/PR/SC 3, PB/PE/PI/RN/TO 2
+          declare -A F=([MG]=6 [SP]=5 [RS]=4 [BA]=3 [PR]=3 [SC]=3 [PB]=2 [PE]=2 [PI]=2 [RN]=2 [TO]=2)
+          l=""; for x in $u; do n=${F[$x]:-1}; if [ "$n" -eq 1 ]; then l="$l $x"; else for k in $(seq 1 $n); do l="$l $x:$k/$n"; done; fi; done
+          echo "lista=$(printf '%s\n' $l | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
   espelho:
     needs: ufs
     runs-on: ubuntu-latest
@@ -60,5 +63,6 @@ jobs:
           RCLONE_CONFIG_ESPELHO_CLIENT_SECRET: ${{ secrets.ESPELHO_DRIVE_CLIENT_SECRET }}
         run: |
           s="${{ inputs.so }}"
-          python -I espelho/espelho_drive.py --uf ${{ matrix.uf }} --jobs 3 --node-modules /tmp/pw/node_modules \
+          m="${{ matrix.uf }}"; uf=${m%%:*}; fatia=""; [ "$m" != "$uf" ] && fatia="--fatia ${m#*:}"
+          python -I espelho/espelho_drive.py --uf $uf $fatia --jobs 3 --node-modules /tmp/pw/node_modules \
             ${s:+--so $s} ${{ inputs.simular && '--simular' || '' }}

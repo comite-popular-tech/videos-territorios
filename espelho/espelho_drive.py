@@ -294,6 +294,7 @@ def main():
     ap.add_argument("--remote", default="espelho", help="remoto do rclone (rclone.conf ou RCLONE_CONFIG_<NOME>_*)")
     ap.add_argument("--jobs", type=int, default=2, help="cidades ao mesmo tempo")
     ap.add_argument("--limite", type=int, help="no máximo N cidades")
+    ap.add_argument("--fatia", help="k/n: só a k-ésima de n partes (para dividir uma UF grande entre vários jobs)")
     ap.add_argument("--node-modules", default=str(RAIZ / "video" / "node_modules"))
     ap.add_argument("--tmp", help="pasta dos temporários (os 12 cards de um território por vez); padrão: a do sistema")
     ap.add_argument("--simular", action="store_true", help="só lista o que faria (lê o Drive e o R2, não escreve)")
@@ -309,6 +310,9 @@ def main():
         cidades = [c for c in cidades if c[0] in set(a.cidade)]
     if a.uf:
         cidades = [c for c in cidades if c[2] in {u.upper() for u in a.uf}]
+    if a.fatia:
+        k, n = (int(x) for x in a.fatia.split("/"))
+        cidades = cidades[k - 1::n]
     cidades = cidades[:a.limite] if a.limite else cidades
     print(f"{len(cidades)} cidades, material: {', '.join(m for m in MATERIAIS if m in so)}{' (simulação)' if a.simular else ''}")
 
