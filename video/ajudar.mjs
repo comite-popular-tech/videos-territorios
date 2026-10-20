@@ -26,15 +26,18 @@ if (!/^[a-z0-9-]+$/.test(TRABALHO)) { console.error('nome de trabalho inválido'
 const script = ['.mjs', '.sh'].map((e) => path.join(VIDEO, 'trabalhos', TRABALHO + e)).find((p) => fs.existsSync(p));
 if (!script) { console.error(`não existe video/trabalhos/${TRABALHO}.mjs nem .sh`); process.exit(1); }
 
-async function pedir(url, metodo = 'GET', corpo, tipo) {
+const dormir = (ms) => new Promise((ok) => setTimeout(ok, ms));
+// tenta de novo em erro de rede, 429 e 5xx, com espera crescente (2 s, 4 s, ... até 1 min); o pedido de lote tenta mais
+// vezes porque na largada de 20 máquinas do Actions todas batem no Worker no mesmo segundo
+async function pedir(url, metodo = 'GET', corpo, tipo, tentativas = 5) {
   for (let tentativa = 0; ; tentativa++) {
     try {
       const r = await fetch(url, { method: metodo, body: corpo, headers: tipo ? { 'Content-Type': tipo } : {} });
       if (r.status === 429 || r.status >= 500) throw new Error(`${r.status}`);
       return r;
     } catch (e) {
-      if (tentativa >= 4) throw new Error(`${metodo} ${url.split('?')[0]}: ${e.message}`);
-      await new Promise((ok) => setTimeout(ok, 2000 * 2 ** tentativa));
+      if (tentativa >= tentativas - 1) throw new Error(`${metodo} ${url.split('?')[0]}: ${e.message}`);
+      await dormir(Math.min(60000, 2000 * 2 ** tentativa) * (0.75 + Math.random() / 2));
     }
   }
 }
@@ -46,9 +49,10 @@ async function baixar(url, destino) {
 }
 
 let feitos = 0, falhas = 0;
+if (process.env.GITHUB_ACTIONS) await dormir(Math.random() * 30000); // espalha a largada das máquinas do Actions
 while (feitos + falhas < LIMITE) {
   const quantidade = Math.min(LOTE, LIMITE - feitos - falhas);
-  const r = await pedir(`${FILA}/lote/${TRABALHO}`, 'POST', JSON.stringify({ quantidade, quem: QUEM }), 'application/json');
+  const r = await pedir(`${FILA}/lote/${TRABALHO}`, 'POST', JSON.stringify({ quantidade, quem: QUEM }), 'application/json', 8);
   if (!r.ok) { console.error(`a fila respondeu ${r.status}: ${await r.text()}`); process.exit(1); }
   const lote = await r.json();
   if (!lote.itens.length) { console.log(`fila vazia (${TRABALHO}). Esta rodada: ${feitos} prontos, ${falhas} falhas. Progresso: ${FILA}/`); process.exit(feitos || !falhas ? 0 : 1); }
