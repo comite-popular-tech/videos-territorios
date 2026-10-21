@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ajude a fazer os vídeos</title>
+<meta name="description" content="Deixe esta aba aberta e o seu navegador monta e envia os vídeos da Farmácia Popular, um por bairro e cidade.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%228%22 fill=%22%2316A34A%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,700..900&family=Montserrat:wght@500;600;700&display=swap">
+<style>
+:root{--fundo:#0B1120;--cartao:#141c30;--linha:#26304a;--texto:#f4f6fb;--fraco:#a9b3c9;--verde:#16A34A;--verde2:#22c55e;--vermelho:#E11D48;--amarelo:#FACC15}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--texto);font:500 17px/1.5 Montserrat,system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:28px 16px 64px}
+h1{font:900 clamp(30px,6vw,46px)/1.05 Archivo,system-ui,sans-serif;font-stretch:80%;text-transform:uppercase;margin:0 0 12px}
+h1 em{font-style:normal;color:var(--verde2)}
+h2{font:800 24px/1.15 Archivo,system-ui,sans-serif;font-stretch:85%;text-transform:uppercase;margin:0 0 8px}
+p{margin:0 0 12px}
+.fraco{color:var(--fraco)}
+.pequeno{font-size:14px}
+[hidden]{display:none!important}
+.cartao{background:var(--cartao);border:1px solid var(--linha);border-radius:16px;padding:20px;margin:18px 0}
+button{font:700 18px Montserrat,system-ui,sans-serif;padding:14px 22px;border-radius:12px;border:0;cursor:pointer;color:#fff;background:var(--verde)}
+button:hover{filter:brightness(1.1)}
+button:disabled{opacity:.45;cursor:default;filter:none}
+button.secundario{background:transparent;border:2px solid var(--linha);color:var(--texto)}
+button.perigo{background:var(--vermelho)}
+.botoes{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+input[type=text],textarea{width:100%;font:500 17px Montserrat,system-ui,sans-serif;padding:12px;border-radius:10px;border:1px solid var(--linha);background:#0d1527;color:var(--texto)}
+textarea{min-height:80px;resize:vertical}
+label.opcao{display:flex;gap:10px;align-items:center;padding:8px 0;cursor:pointer}
+label.opcao input{width:20px;height:20px;accent-color:var(--vermelho)}
+.lado{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:640px){.lado{grid-template-columns:1fr}}
+.quadro{background:#000;border-radius:14px;overflow:hidden;aspect-ratio:9/16;max-height:72vh;margin:0 auto;position:relative;display:flex;align-items:center;justify-content:center}
+.quadro video{width:100%;height:100%;display:block;object-fit:contain;background:#000}
+.legenda{font:800 15px Montserrat,system-ui,sans-serif;margin:0 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.legenda.ok{color:var(--verde2)}
+.espera{padding:24px;text-align:center;color:var(--fraco)}
+.barra{height:12px;background:#ffffff1c;border-radius:6px;overflow:hidden;margin:12px 0 6px}
+.barra div{height:100%;width:0;background:var(--verde2);transition:width .3s}
+.passos{display:flex;gap:8px;margin:0 0 14px;flex-wrap:wrap}
+.passos span{font:700 13px Montserrat,system-ui,sans-serif;padding:4px 10px;border-radius:999px;background:#ffffff12;color:var(--fraco)}
+.passos span.agora{background:var(--verde);color:#fff}
+.contador{font:900 clamp(56px,14vw,96px)/1 Archivo,system-ui,sans-serif;font-stretch:80%;color:var(--verde2)}
+.aviso{border-left:4px solid var(--amarelo);padding:10px 14px;background:#facc1514;border-radius:8px}
+.erro{border-left:4px solid var(--vermelho);padding:10px 14px;background:#e11d4814;border-radius:8px}
+.mini{max-width:240px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Ajude a fazer os vídeos da <em>Farmácia Popular</em></h1>
+  <p class="fraco">Um vídeo para cada bairro e cidade do Brasil: "A insulina do Seu Raimundo". Deixe esta aba aberta e o seu computador monta os vídeos e envia sozinho. Não precisa instalar nada.</p>
+
+  <!-- 0: começo -->
+  <section id="inicio" class="cartao">
+    <h2>Como funciona</h2>
+    <p>1. Você confere os 2 primeiros vídeos que o seu navegador montar, comparando com o vídeo aprovado.<br>2. Depois disso ele segue sozinho: pega o próximo bairro, monta, envia e repete.</p>
+    <p class="fraco pequeno">Cada vídeo leva cerca de 1 minuto e tem uns 12 MB para enviar. Funciona no Chrome ou no Edge, no computador. Pode usar o computador para outras coisas e deixar esta aba atrás das outras, só não feche.</p>
+    <p><label for="quem" class="pequeno fraco">Seu nome ou apelido (aparece no placar da produção; pode deixar em branco)</label><input id="quem" type="text" maxlength="40" autocomplete="nickname"></p>
+    <div id="incompativel" class="erro" hidden></div>
+    <div class="botoes"><button id="comecar">Começar</button></div>
+  </section>
+
+  <!-- 1: revisão dos 2 primeiros -->
+  <section id="revisao" hidden>
+    <div class="passos"><span id="passo1">Vídeo 1 de 2</span><span id="passo2">Vídeo 2 de 2</span><span>Depois, sozinho</span></div>
+    <div class="lado">
+      <div>
+        <p class="legenda ok">É assim que tem que ficar</p>
+        <div class="quadro"><video id="padrao" controls playsinline preload="metadata"></video></div>
+        <p class="fraco pequeno">Vídeo aprovado (Capão Redondo, São Paulo).</p>
+      </div>
+      <div>
+        <p class="legenda" id="seuTitulo">O seu vídeo</p>
+        <div class="quadro"><div class="espera" id="seuEspera"><p id="seuEstado">Montando o seu vídeo...</p><div class="barra"><div id="seuBarra"></div></div><p class="pequeno" id="seuDetalhe"></p></div><video id="seu" controls playsinline hidden></video></div>
+        <p class="fraco pequeno" id="seuOnde"></p>
+      </div>
+    </div>
+    <div class="cartao" id="decisao" hidden>
+      <p>Assista ao seu vídeo inteiro, com som. O nome do lugar e os números mudam; o resto tem de ser igual ao vídeo aprovado.</p>
+      <div class="botoes"><button id="igual">Está igual, enviar</button><button id="problema" class="perigo">Tem problema</button></div>
+    </div>
+  </section>
+
+  <!-- formulário de problema (revisão e "Vi um problema") -->
+  <section id="formProblema" class="cartao" hidden>
+    <h2>O que está errado?</h2>
+    <div class="mini" id="problemaVideoCaixa" hidden><div class="quadro"><video id="problemaVideo" controls playsinline></video></div><p class="fraco pequeno" id="problemaOnde"></p></div>
+    <label class="opcao"><input type="checkbox" value="nome errado"> Nome do lugar errado</label>
+    <label class="opcao"><input type="checkbox" value="voz estranha"> Voz estranha</label>
+    <label class="opcao"><input type="checkbox" value="imagem errada"> Imagem errada</label>
+    <label class="opcao"><input type="checkbox" value="outro"> Outro</label>
+    <p><textarea id="problemaTexto" placeholder="Conte o que viu (opcional)"></textarea></p>
+    <div class="botoes"><button id="problemaEnviar" class="perigo">Avisar</button><button id="problemaCancelar" class="secundario">Voltar</button></div>
+  </section>
+
+  <!-- 2: sozinho -->
+  <section id="sozinho" class="cartao" hidden>
+    <p class="fraco">Você já fez</p>
+    <div class="contador" id="contador">0</div>
+    <p id="contadorRotulo">vídeos. Obrigado!</p>
+    <p id="laco">Pedindo o próximo bairro...</p>
+    <div class="barra"><div id="lacoBarra"></div></div>
+    <p class="fraco pequeno" id="lacoDetalhe"></p>
+    <div class="botoes"><button id="pausar" class="secundario">Pausar</button><button id="viProblema" class="secundario">Vi um problema</button></div>
+    <p class="fraco pequeno" style="margin-top:16px">Pode deixar esta aba atrás das outras, só não feche. Se o computador dormir, os vídeos param e voltam quando ele acordar.</p>
+  </section>
+
+  <div id="mensagem" hidden></div>
+  <p class="fraco pequeno" style="margin-top:32px">Os vídeos vão para o acervo da campanha em <a href="https://cards.boralula.org" style="color:var(--fraco)">cards.boralula.org</a>. Progresso geral: <a id="progresso" style="color:var(--fraco)" href="https://fila-videos.boralula.workers.dev/">fila de produção</a>.</p>
+</main>
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>

@@ -6,6 +6,12 @@ para a campanha. Agora estamos produzindo **"A insulina do Seu Raimundo"**, sobr
 públicos, pelo Comitê Popular Tech. Este repositório é aberto para que qualquer pessoa possa emprestar o computador
 para produzir os vídeos.
 
+## O jeito mais fácil: pelo navegador
+
+Abra <https://comite-popular-tech.github.io/videos-territorios/> no **Chrome** ou no **Edge** do computador e deixe a
+aba aberta. Você confere os 2 primeiros vídeos e depois o navegador monta e envia sozinho. Não precisa instalar nada.
+Detalhes em [`navegador/`](navegador/).
+
 ## Como ajudar com o seu computador
 
 A campanha precisa de milhares de vídeos, um para cada cidade e bairro do Brasil, e cada um leva de 1 a 3 minutos para
