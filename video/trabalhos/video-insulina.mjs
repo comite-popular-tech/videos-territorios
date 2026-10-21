@@ -61,11 +61,11 @@ function roteiro(d, slug) {
   const [atend, pop] = FP.municipios[ibge] ?? [0, 0];
   const doEstado = !atend;
   const [a, p] = doEstado ? FP.ufs[uf] : [atend, pop];
-  const onde = doEstado ? ESTADOS[uf][0] : `Em ${cidade}`;
+  const onde = doEstado ? ESTADOS[uf][0] : `Aqui em ${cidade}`;
   const quem = a === 1 ? '1 pessoa pegou' : `${falado(a)} pessoas pegaram`;
   return {
     falas: [
-      `Seu Raimundo mora ${bairro ? `no bairro ${bairro}` : `em ${cidade}`}. Tem diabetes e usa insulina todo dia.`,
+      `Seu Raimundo mora ${bairro ? `no bairro ${bairro}, aqui em ${cidade}` : `aqui em ${cidade}`}. Tem diabetes e usa insulina todo dia.`,
       `Todo mês ele pega a insulina na farmácia${RUA[slug] ? ` ${RUA[slug]}` : ''}. E não paga nada.`,
       'São mais de cem reais que ficam no bolso, todo mês.',
       `${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`,
