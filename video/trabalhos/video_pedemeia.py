@@ -47,7 +47,9 @@ def comuns() -> None:
         if local.exists():
             shutil.copy2(local, destino)
             continue
-        with urllib.request.urlopen(f"{FILA}/entradas/comum/video-pedemeia/{nome}", timeout=120) as r:
+        # User-Agent próprio: o Cloudflare do Worker responde 403 ao "Python-urllib" padrão
+        pedido = urllib.request.Request(f"{FILA}/entradas/comum/video-pedemeia/{nome}", headers={"User-Agent": "videos-territorios/1.0 (video_pedemeia.py)"})
+        with urllib.request.urlopen(pedido, timeout=120) as r:
             destino.write_bytes(r.read())
 
 
