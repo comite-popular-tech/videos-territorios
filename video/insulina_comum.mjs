@@ -91,9 +91,10 @@ export function trechos(leg) {
 }
 
 const tempo = (s) => { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), seg = s % 60; return `${h}:${String(m).padStart(2, '0')}:${seg.toFixed(2).padStart(5, '0')}`; };
-// extra: aceleração a mais da fala desta cena (os tempos da legenda encolhem junto); deslocamento em segundos finais
-export function ass(leg, { extra = 1, deslocamento = 0 } = {}) {
-  const f = (s) => deslocamento + s / VEL / extra;
+// extra: aceleração a mais da fala desta cena (os tempos da legenda encolhem junto); deslocamento em segundos finais;
+// vel: aceleração do vídeo final (a insulina é 1,25x; o posto, posto_comum.mjs, é 1,5x)
+export function ass(leg, { extra = 1, deslocamento = 0, vel = VEL } = {}) {
+  const f = (s) => deslocamento + s / vel / extra;
   const tam = Math.round(76 * ESCALA), margem = Math.round(390 * ESCALA);
   const cab = `[Script Info]
 ScriptType: v4.00+
