@@ -3,7 +3,7 @@
 
 Dentro da pasta compartilhada do Vinicius (PASTA_RAIZ), em "Conteúdo por cidade/" (decisão do Gui, 2026-10-20):
 
-  SE - Aracaju/               (UF na frente, para o Drive ordenar por estado)
+  SE/Aracaju/                 (uma pasta por estado e, dentro dela, a cidade sem a UF)
     Vídeo/                      Alerta Saúde SUS do território, do R2 da fila (um por bairro nas cidades grandes:
                                 "Alerta Saúde SUS - Santa Maria.mp4"; nas outras, "Alerta Saúde SUS.mp4")
     Cards/                      os 12 cards do site, em JPEG, gerados pela própria página (scripts/espelho_cards.mjs):
@@ -188,7 +188,7 @@ def gerar_cards(slug: str, pasta: Path, node_modules: Path) -> list[Path]:
 def plano_da_cidade(cid, rc, origens, so, ja):
     """Lista de (tipo, destino, origem) que faltam para a cidade. `ja` = caminhos que já existem no destino."""
     slug, nome, uf, _pop, ibge, terrs = cid
-    base = f"{DESTINO}/{uf} - {nome}"           # "SE - Aracaju": em ordem de UF no Drive (Gui, 20/10)
+    base = f"{DESTINO}/{uf}/{nome}"             # "SE/Aracaju": uma pasta por estado (Gui, 20/10)
     varios = len(terrs) > 1
     passos = []
 
@@ -240,7 +240,7 @@ def links_txt(cid) -> str:
 
 def executar(cid, rc, origens, so, simular, node_modules, tmp: Path):
     slug, nome, uf = cid[0], cid[1], cid[2]
-    base = f"{DESTINO}/{uf} - {nome}"           # "SE - Aracaju": em ordem de UF no Drive (Gui, 20/10)
+    base = f"{DESTINO}/{uf}/{nome}"             # "SE/Aracaju": uma pasta por estado (Gui, 20/10)
     ja = {i["Path"][len(base) + 1:] for i in rc.listar(base) if not i["IsDir"]}   # o Path vem a partir da raiz
     base, passos = plano_da_cidade(cid, rc, origens, so, ja)
     if simular:
