@@ -319,6 +319,8 @@ def main():
     rc = Rclone(a.remote)
     if not a.simular:
         rc.mkdir(DESTINO)                               # antes das cidades em paralelo (ver executar)
+        for uf in sorted({c[2] for c in cidades}):
+            rc.mkdir(f"{DESTINO}/{uf}")
     origens = Origens(rc)
     tmp = Path(tempfile.mkdtemp(prefix="espelho-", dir=a.tmp))
     erros, t0 = [], time.time()
