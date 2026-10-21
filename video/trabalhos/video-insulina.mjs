@@ -157,7 +157,7 @@ for (const it of itens) {
       `[0:v]setpts=PTS/${VEL}[v];[0:a]atempo=${VEL}[n];[1:a]atrim=0:${dur.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(dur - 4).toFixed(2)}:d=4,volume=${MUSICA}[m];[n][m]amix=inputs=2:duration=first:normalize=0[a]`,
       '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', fin], { stdio: 'inherit' });
     fs.rmSync(bruto, { force: true });
-    if (f.status !== 0) throw new Error('ffmpeg falhou');
+    if (f.status !== 0) throw new Error(f.error ? `ffmpeg não roda (${f.error.code}; instale o ffmpeg)` : 'ffmpeg falhou');
     ok++;
     console.log(`  ${it.slug}: ${dur.toFixed(1)} s, render ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   } catch (e) {
