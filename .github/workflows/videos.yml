@@ -92,6 +92,7 @@ jobs:
           npx playwright install --with-deps chromium
           pip install --quiet edge-tts numpy
           python trilha.py
+          if [ "${{ inputs.trabalho }}" = "video-bolsa-familia" ]; then npx hyperframes browser ensure; fi   # render do HyperFrames
 
       - name: Render
         env:
