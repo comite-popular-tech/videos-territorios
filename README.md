@@ -71,7 +71,9 @@ bash videos-territorios/video/ajudar.sh
 ## Para a equipe: máquinas do GitHub Actions
 
 O workflow **videos** (aba Actions → videos → Run workflow) põe até 20 máquinas do GitHub na mesma fila. É o jeito
-de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. O campo
+de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. **Dispare num
+fork, na sua conta**, nunca neste repositório: o GitHub dá 20 máquinas por conta, e aqui elas seriam as 20 da org
+inteira, deixando o CI dos outros repositórios na fila (aqui o workflow só aceita o kit de exemplo). O campo
 **Trabalho da fila** diz qual vídeo produzir (hoje `video-insulina`). A rodada dura até 5h50 (limite do GitHub); se
 ainda houver fila, rode de novo. Com `exemplo` marcado, renderiza só os 4 territórios do kit de exemplo, para teste.
 

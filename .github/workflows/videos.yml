@@ -1,5 +1,7 @@
 # Renderiza os vídeos de Saúde (video/) em várias máquinas do GitHub Actions ao mesmo tempo.
-# Dispare em Actions → videos → Run workflow (neste repositório ou num fork). Cada máquina roda video/ajudar.sh, que
+# Dispare em Actions → videos → Run workflow **num fork** (conta pessoal ou org só sua): o limite de 20 máquinas do
+# plano Free é por conta, e rodar aqui ocupa as 20 da org e trava o CI dos outros repositórios. Neste repositório o
+# render recusa rodar; só o kit de exemplo é permitido, para testar o workflow. Cada máquina roda video/ajudar.sh, que
 # pede lotes de territórios à fila (Worker público, entrada fila_url), renderiza, sobe os MP4 e para quando a fila
 # esvazia. Com `exemplo` marcado, renderiza só o kit de exemplo (4 territórios) e sobe os MP4 como artifact: teste.
 name: videos
@@ -43,6 +45,8 @@ permissions:
 jobs:
   matriz:
     runs-on: ubuntu-latest
+    # Na org, só o kit de exemplo: o render de verdade ocuparia as 20 máquinas da comite-popular-tech inteira.
+    if: inputs.exemplo || github.repository_owner != 'comite-popular-tech'
     outputs:
       lista: ${{ steps.m.outputs.lista }}
     steps:

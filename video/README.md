@@ -78,20 +78,19 @@ Opções do lote no cabeçalho de [lote.mjs](lote.mjs): `--720` (cerca de 40% ma
 ## Rodar no GitHub Actions
 
 Em vez de uma máquina só, até 20 máquinas do GitHub rendem ao mesmo tempo ([.github/workflows/videos.yml](../.github/workflows/videos.yml)).
-Dá para disparar de dois lugares:
-
-**Neste repositório** (quem tem acesso de escrita): Actions → **videos** → **Run workflow**. Escolha quantas máquinas (`jobs`, padrão 20) e
-quantos territórios cada uma pega antes de parar (`limite`, 0 = até a fila esvaziar) e confirme.
-
-**No seu fork, com as 20 máquinas da sua conta** (qualquer voluntário com conta no GitHub):
+Dispare **sempre num fork**, nunca neste repositório: o limite de 20 máquinas do plano Free é por conta, e aqui
+elas seriam as 20 da `comite-popular-tech` inteira, deixando o CI dos outros repositórios na fila (o workflow recusa
+rodar aqui, exceto com `exemplo` marcado, para testar). Qualquer conta do GitHub serve, da equipe ou de voluntário:
 
 1. Faça um fork do repositório (botão Fork, no alto da página).
 2. No fork, abra a aba **Actions** e clique em **I understand my workflows, go ahead and enable them** (o GitHub
    desliga os workflows num fork novo).
-3. Actions → **videos** → **Run workflow**, como acima. Não precisa de segredo nem de permissão especial: o workflow só
-   lê o código e fala com a fila pela internet.
+3. Actions → **videos** → **Run workflow**. Escolha quantas máquinas (`jobs`, padrão 20) e quantos territórios cada
+   uma pega antes de parar (`limite`, 0 = até a fila esvaziar) e confirme. Não precisa de segredo nem de permissão
+   especial: o workflow só lê o código e fala com a fila pela internet.
+4. Antes de cada rodada, **Sync fork** na página do fork, para pegar o workflow atual.
 
-Em qualquer dos dois, cada máquina prepara o `video/` (cerca de 3 min, menos quando o cache pega), roda
+Cada máquina prepara o `video/` (cerca de 3 min, menos quando o cache pega), roda
 `bash video/ajudar.sh --gl swangle` e vai pegando territórios da fila (`trabalho`, padrão `video-saude`) até ela
 acabar ou até 5h50 (limite do GitHub é 6 h). A fila é um Worker público: o endereço vem da entrada `fila_url` ou, vazia,
 da variável de repositório `FILA_URL` (nunca de um segredo, para o fork funcionar). O resumo da rodada, com o tempo
