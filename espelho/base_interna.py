@@ -18,8 +18,12 @@ Material (--so, padrão todos):
 Pula o que já existe (pelo nome). Os vídeos vão do Worker fila-videos direto para o Drive (rclone copyurl).
 O transporte (rclone rcd) é o mesmo do espelho_drive.py.
 
+--atalhos: em vez de subir, põe em "Conteúdo por cidade/<UF>/<Cidade>/Vídeo/" um atalho (não ocupa cota) para cada
+vídeo que a cidade já tem na base, com o mesmo nome ("Vídeo/Farmácia Popular.mp4"; Gui, 2026-10-21).
+
   python -I espelho/base_interna.py --cidade sc-brusque --simular
   python -I espelho/base_interna.py --uf SC --jobs 3
+  python -I espelho/base_interna.py --uf SC --jobs 3 --atalhos
 """
 import argparse
 import json
@@ -29,7 +33,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # python -I não põe a pasta do script no path
-from espelho_drive import FILA, Rclone, existe_no_r2, indice   # noqa: E402
+from espelho_drive import DESTINO as CIDADES, FILA, Rclone, existe_no_r2, indice   # noqa: E402
 
 DESTINO = "Base de conteúdos internos"
 REGIOES = json.loads((Path(__file__).resolve().parent / "regioes_ibge.json").read_text(encoding="utf-8"))
@@ -73,6 +77,26 @@ def executar(cid, rc, so, simular):
     return len(passos)
 
 
+def atalhos(cid, rc, simular):
+    """Atalho em Conteúdo por cidade/<UF>/<Cidade>/Vídeo/ para cada <tema>/Vídeo/<arquivo> da cidade na base."""
+    base, pasta = base_da_cidade(cid), f"{CIDADES}/{cid[2]}/{cid[1]}/Vídeo"
+    videos = [i["Path"] for i in rc.listar(base) if not i["IsDir"] and i["Path"].rsplit("/", 2)[-2] == "Vídeo"]
+    if not videos:
+        return 0
+    lista = rc.listar(pasta, recursivo=False)
+    ja = {i["Name"] for i in lista if not i["IsDir"]}
+    passos = [(v, f"{pasta}/{v.rsplit('/', 1)[1]}") for v in videos if v.rsplit("/", 1)[1] not in ja]
+    if simular:
+        for v, d in passos:
+            print(f"  [simular] {d}  ->  {v}")
+        return len(passos)
+    if passos and not lista:
+        rc.mkdir(pasta)
+    with ThreadPoolExecutor(4) as ex:
+        list(ex.map(lambda p: rc.atalho(*p), passos))
+    return len(passos)
+
+
 def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
@@ -83,6 +107,7 @@ def main():
     ap.add_argument("--jobs", type=int, default=2, help="cidades ao mesmo tempo")
     ap.add_argument("--limite", type=int)
     ap.add_argument("--fatia", help="k/n: só a k-ésima de n partes")
+    ap.add_argument("--atalhos", action="store_true", help="atalhos em Conteúdo por cidade para o que já está na base")
     ap.add_argument("--simular", action="store_true")
     a = ap.parse_args()
     so = [m for m in a.so.split(",") if m]
@@ -101,7 +126,7 @@ def main():
     print(f"{len(cidades)} cidades, material: {', '.join(so)}{' (simulação)' if a.simular else ''}")
 
     rc = Rclone(a.remote)
-    if not a.simular:                       # os níveis de cima antes das cidades em paralelo (o Drive aceita nomes repetidos)
+    if not a.simular and not a.atalhos:                       # os níveis de cima antes das cidades em paralelo (o Drive aceita nomes repetidos)
         for b in sorted({base_da_cidade(c).rsplit("/", 1)[0] for c in cidades}):
             partes = b.split("/")
             for i in range(1, len(partes) + 1):
@@ -109,11 +134,12 @@ def main():
     erros, t0 = [], time.time()
     try:
         with ThreadPoolExecutor(a.jobs) as ex:
-            futuros = {ex.submit(executar, c, rc, so, a.simular): c for c in cidades}
+            futuros = {(ex.submit(atalhos, c, rc, a.simular) if a.atalhos else ex.submit(executar, c, rc, so, a.simular)): c
+                       for c in cidades}
             for n, f in enumerate(as_completed(futuros), 1):
                 c = futuros[f]
                 try:
-                    print(f"[{n}/{len(cidades)}] {c[1]} - {c[2]}: {f.result()} {'a subir' if a.simular else 'subidos'} ({time.time() - t0:.0f} s)", flush=True)
+                    print(f"[{n}/{len(cidades)}] {c[1]} - {c[2]}: {f.result()} {('a criar' if a.simular else 'atalhos') if a.atalhos else ('a subir' if a.simular else 'subidos')} ({time.time() - t0:.0f} s)", flush=True)
                 except Exception as e:
                     erros.append((c[0], str(e)))
                     print(f"[{n}/{len(cidades)}] ERRO {c[1]} - {c[2]}: {e}", flush=True)

@@ -1,7 +1,7 @@
 # Base de conteúdos internos no Google Drive (espelho/base_interna.py): Região/UF/Região intermediária/Município/Tema/Vídeo.
 # Um job por UF (as grandes em fatias); pula o que já existe, então pode rodar de novo para completar.
 # Mesmos secrets do espelho-drive (ESPELHO_DRIVE_TOKEN, _CLIENT_ID, _CLIENT_SECRET). O Drive limita escrita por conta:
-# max-parallel baixo (6).
+# max-parallel baixo (6). atalhos=true: em vez de subir, os atalhos em "Conteúdo por cidade/<UF>/<Cidade>/Vídeo/".
 name: base-interna
 on:
   workflow_dispatch:
@@ -15,6 +15,10 @@ on:
       paralelo:
         description: "quantos jobs ao mesmo tempo"
         default: "6"
+      atalhos:
+        description: "atalhos em Conteúdo por cidade para o que já está na base (não sobe vídeo)"
+        type: boolean
+        default: false
       simular:
         description: "só listar o que faria"
         type: boolean
@@ -60,4 +64,4 @@ jobs:
         run: |
           s="${{ inputs.so }}"
           m="${{ matrix.uf }}"; uf=${m%%:*}; fatia=""; [ "$m" != "$uf" ] && fatia="--fatia ${m#*:}"
-          python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.simular && '--simular' || '' }}
+          python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.atalhos && '--atalhos' || '' }} ${{ inputs.simular && '--simular' || '' }}
