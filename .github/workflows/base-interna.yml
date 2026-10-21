@@ -1,0 +1,63 @@
+# Base de conteúdos internos no Google Drive (espelho/base_interna.py): Região/UF/Região intermediária/Município/Tema/Vídeo.
+# Um job por UF (as grandes em fatias); pula o que já existe, então pode rodar de novo para completar.
+# Mesmos secrets do espelho-drive (ESPELHO_DRIVE_TOKEN, _CLIENT_ID, _CLIENT_SECRET). O Drive limita escrita por conta:
+# max-parallel baixo (6).
+name: base-interna
+on:
+  workflow_dispatch:
+    inputs:
+      ufs:
+        description: "UFs separadas por espaço (vazio = todas)"
+        default: ""
+      so:
+        description: "materiais (vazio = todos): insulina"
+        default: ""
+      paralelo:
+        description: "quantos jobs ao mesmo tempo"
+        default: "6"
+      simular:
+        description: "só listar o que faria"
+        type: boolean
+        default: false
+jobs:
+  ufs:
+    runs-on: ubuntu-latest
+    outputs:
+      lista: ${{ steps.l.outputs.lista }}
+    steps:
+      - id: l
+        run: |
+          u="${{ inputs.ufs }}"
+          [ -z "$u" ] && u="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO"
+          declare -A F=([MG]=6 [SP]=5 [RS]=4 [BA]=3 [PR]=3 [SC]=3 [PB]=2 [PE]=2 [PI]=2 [RN]=2 [TO]=2)
+          l=""; for x in $u; do n=${F[$x]:-1}; if [ "$n" -eq 1 ]; then l="$l $x"; else for k in $(seq 1 $n); do l="$l $x:$k/$n"; done; fi; done
+          echo "lista=$(printf '%s\n' $l | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
+  base:
+    needs: ufs
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(inputs.paralelo || '6') }}
+      matrix:
+        uf: ${{ fromJson(needs.ufs.outputs.lista) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: espelho
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: rclone
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash
+      - name: base interna
+        env:
+          RCLONE_CONFIG_ESPELHO_TYPE: drive
+          RCLONE_CONFIG_ESPELHO_SCOPE: drive
+          RCLONE_CONFIG_ESPELHO_TOKEN: ${{ secrets.ESPELHO_DRIVE_TOKEN }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_ID: ${{ secrets.ESPELHO_DRIVE_CLIENT_ID }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_SECRET: ${{ secrets.ESPELHO_DRIVE_CLIENT_SECRET }}
+        run: |
+          s="${{ inputs.so }}"
+          m="${{ matrix.uf }}"; uf=${m%%:*}; fatia=""; [ "$m" != "$uf" ] && fatia="--fatia ${m#*:}"
+          python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.simular && '--simular' || '' }}
