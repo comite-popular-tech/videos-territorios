@@ -65,3 +65,22 @@ jobs:
           s="${{ inputs.so }}"
           m="${{ matrix.uf }}"; uf=${m%%:*}; fatia=""; [ "$m" != "$uf" ] && fatia="--fatia ${m#*:}"
           python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.atalhos && '--atalhos' || '' }} ${{ inputs.simular && '--simular' || '' }}
+  juntar:
+    # as fatias de uma UF rodam juntas e podem criar a mesma pasta duas vezes (o Drive aceita nomes repetidos):
+    # no fim, junta as pastas de mesmo nome (só pastas; arquivos ficam como estão)
+    needs: base
+    if: ${{ always() && !inputs.simular }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: rclone
+        run: curl -fsSL https://rclone.org/install.sh | sudo bash
+      - name: juntar pastas repetidas
+        env:
+          RCLONE_CONFIG_ESPELHO_TYPE: drive
+          RCLONE_CONFIG_ESPELHO_SCOPE: drive
+          RCLONE_CONFIG_ESPELHO_TOKEN: ${{ secrets.ESPELHO_DRIVE_TOKEN }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_ID: ${{ secrets.ESPELHO_DRIVE_CLIENT_ID }}
+          RCLONE_CONFIG_ESPELHO_CLIENT_SECRET: ${{ secrets.ESPELHO_DRIVE_CLIENT_SECRET }}
+        run: |
+          d="${{ inputs.atalhos && 'Conteúdo por cidade' || 'Base de conteúdos internos' }}"
+          rclone dedupe merge "espelho,root_folder_id=1zYnOUEpE5vmmRrcnwO7rgKE5rNkMZHVu:$d" -v 2>&1 | grep -v "^$" | tail -50
