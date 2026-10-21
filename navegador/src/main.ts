@@ -85,7 +85,7 @@ function pedirProblema(video?: { url: string; onde: string }): Promise<string | 
 async function revisar() {
   mostrar('revisao');
   const padrao = $('padrao') as HTMLVideoElement;
-  if (!padrao.src) padrao.src = PADRAO;
+  if (!padrao.src) padrao.src = PADRAO + '#t=1.5'; // #t: mostra um quadro em vez da tela preta
   const seu = $('seu') as HTMLVideoElement;
   while (aprovados < 2) {
     $('passo1').className = aprovados === 0 ? 'agora' : ''; $('passo2').className = aprovados === 1 ? 'agora' : '';
@@ -186,7 +186,7 @@ function fim() {
 // ---------------------------------------------------------------- modos de teste (sem fila)
 async function teste(slug: string, padrao: boolean) {
   mostrar('inicio', false); mostrar('revisao');
-  ($('padrao') as HTMLVideoElement).src = PADRAO;
+  ($('padrao') as HTMLVideoElement).src = PADRAO + '#t=1.5';
   $('seuTitulo').textContent = padrao ? 'Novo vídeo padrão' : `Teste: ${slug}`; $('seuOnde').textContent = slug;
   try {
     const blob = await montarItem(slug, undefined, $('seuBarra'), $('seuDetalhe'));
