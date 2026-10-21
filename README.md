@@ -58,6 +58,20 @@ git clone https://github.com/comite-popular-tech/videos-territorios.git
 bash videos-territorios/video/ajudar.sh
 ```
 
+### Vídeo de alerta do Bolsa Família
+
+É outra fila: o trabalho `video-bolsa-familia` (36 s, 720×1280, um vídeo por município). Precisa do **Node.js 22 ou
+mais novo** (a versão LTS de <https://nodejs.org> serve). Na primeira vez, ele baixa sozinho o navegador que desenha o
+vídeo (HyperFrames).
+
+- **Windows:** abra o PowerShell na pasta `video` e rode
+  `powershell -ExecutionPolicy Bypass -File ajudar.ps1 --trabalho video-bolsa-familia`
+- **Mac ou Linux:** `bash videos-territorios/video/ajudar.sh --trabalho video-bolsa-familia`
+
+Para testar com poucos vídeos, ponha `--limite 2` no fim; para pesar menos no computador, `--conc 1`. Tudo o que cada
+cidade precisa (falas, números, foto) vem da fila. A foto fica em
+`https://fila-videos.boralula.workers.dev/entradas/fundos/<cidade>.jpg`.
+
 ### Dúvidas comuns
 
 - **Como paro?** Feche a janela (ou Ctrl+C). Os vídeos que estavam pela metade voltam para a fila sozinhos em 2 horas.
