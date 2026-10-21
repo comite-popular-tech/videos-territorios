@@ -18,11 +18,17 @@ Write-Host "Preparando (so demora na primeira vez)..."
 if (-not (Test-Path node_modules\@remotion\renderer) -or -not (Test-Path node_modules\ffmpeg-static) -or -not (Test-Path node_modules\hyperframes)) { npm i --no-audit --no-fund }
 & $PY -c "import edge_tts" 2>$null; if ($LASTEXITCODE -ne 0) { & $PY -m pip install -q edge-tts numpy }
 if (-not (Test-Path public\trilha.wav)) { & $PY trilha.py }
+$env:PYTHON = $PY  # os trabalhos que chamam Python (video-bolsa-familia --pillow) usam este
 # o video do Bolsa Familia e renderizado pelo HyperFrames: precisa do Node 22+ e do navegador dele (baixado uma vez)
+# (com --pillow ele e desenhado em Python, sem navegador: precisa so do Pillow e do numpy)
 if ($args -contains "video-bolsa-familia") {
-  $nodeMaior = [int](node -p "process.versions.node.split('.')[0]")
-  if ($nodeMaior -lt 22) { Write-Host "PARE: o video do Bolsa Familia precisa do Node 22 ou mais novo. Instale a versao LTS em https://nodejs.org, feche esta janela e abra de novo."; exit 1 }
-  npx --no-install hyperframes browser ensure
+  if ($args -contains "--pillow") {
+    & $PY -c "import PIL, numpy" 2>$null; if ($LASTEXITCODE -ne 0) { & $PY -m pip install -q pillow numpy }
+  } else {
+    $nodeMaior = [int](node -p "process.versions.node.split('.')[0]")
+    if ($nodeMaior -lt 22) { Write-Host "PARE: o video do Bolsa Familia precisa do Node 22 ou mais novo. Instale a versao LTS em https://nodejs.org, feche esta janela e abra de novo."; exit 1 }
+    npx --no-install hyperframes browser ensure
+  }
 }
 Write-Host "Pronto. Comecando a produzir: pode deixar rodando e usar o computador. Para parar: Ctrl+C ou feche a janela."
 node ajudar.mjs @args

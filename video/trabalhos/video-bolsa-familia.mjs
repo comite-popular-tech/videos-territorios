@@ -28,7 +28,7 @@ let COMUM = LOCAL;
 if (!['A.mp4', 'C.mp4', 'base.wav', 'projeto'].every((n) => fs.existsSync(path.join(LOCAL, n)))) {
   COMUM = path.join(KIT, 'comum');
   fs.mkdirSync(COMUM, { recursive: true });
-  for (const nome of ['A.mp4', 'C.mp4', 'base.wav', 'projeto.tar', 'sfx.tar']) {
+  for (const nome of ['A.mp4', 'C.mp4', 'base.wav', 'projeto.tar', 'sfx.tar', ...(resto.includes('--pillow') ? ['fundo-base.mp4', 'fundo-pico.mp4'] : [])]) {
     const destino = path.join(COMUM, nome);
     if (fs.existsSync(destino)) continue;
     const r = await fetch(`${FILA}/entradas/comum/video-bolsa-familia/${nome}`);
@@ -78,7 +78,15 @@ const CONC = Math.max(1, Math.min(+opc('--conc', 99), Math.floor(os.cpus().lengt
 const hf = (...a) => spawnSync(process.execPath, [C.HYPERFRAMES, 'render', PROJ, '--crf', '14', '--quiet',
   '--workers', opc('--workers', '2'), ...(resto.includes('--rapida') ? ['--experimental-fast-capture'] : []), ...a], { stdio: 'inherit' });
 const t0 = Date.now();
-if (resto.includes('--um-a-um')) {
+// --pillow: sem navegador; bolsa_familia_pillow.py desenha B e D por cima dos fundos prontos (teste de 21/10/2026)
+const PILLOW = resto.includes('--pillow');
+if (PILLOW) {
+  // o ajudar.sh/ajudar.ps1 passa em PYTHON o Python que achou (no Windows pode ser o "py")
+  const py = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
+  spawnSync(py, [path.join(C.VIDEO, 'bolsa_familia_pillow.py'), ENT, TMP, ...itens.map((it) => it.slug),
+    ...(resto.includes('--sem-foto') ? ['--sem-foto'] : []), '--pecas', COMUM, '--paralelo', opc('--paralelo', String(Math.max(1, Math.floor(os.cpus().length / 2))))],
+  { stdio: 'inherit', env: { ...process.env, FFMPEG: C.FFMPEG } });
+} else if (resto.includes('--um-a-um')) {
   for (const it of itens) {
     const vars = path.join(TMP, `${it.slug}-vars.json`);
     fs.writeFileSync(vars, JSON.stringify(variaveis(it)));
@@ -99,12 +107,16 @@ for (const it of itens) {
   const t1 = Date.now();
   const tmp = (n) => path.join(TMP, `${it.slug}-${n}`);
   try {
-    if (!fs.existsSync(trecho(it.slug))) throw new Error('sem o trecho renderizado');
-    // B e D (D com o último quadro parado até o fim)
-    C.ffmpeg('-i', trecho(it.slug), '-filter_complex',
-      `[0:v]split=2[x][y];[x]trim=start_frame=0:end_frame=${nB},setpts=PTS-STARTPTS[b];` +
-      `[y]trim=start_frame=${nB}:end_frame=${nB + nD},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=${parado}[d]`,
-      '-map', '[b]', ...C.ENC, tmp('B.mp4'), '-map', '[d]', ...C.ENC, tmp('D.mp4'));
+    if (PILLOW) {
+      if (!fs.existsSync(tmp('B.mp4')) || !fs.existsSync(tmp('D.mp4'))) throw new Error('sem B/D do Pillow');
+    } else {
+      if (!fs.existsSync(trecho(it.slug))) throw new Error('sem o trecho renderizado');
+      // B e D (D com o último quadro parado até o fim)
+      C.ffmpeg('-i', trecho(it.slug), '-filter_complex',
+        `[0:v]split=2[x][y];[x]trim=start_frame=0:end_frame=${nB},setpts=PTS-STARTPTS[b];` +
+        `[y]trim=start_frame=${nB}:end_frame=${nB + nD},setpts=PTS-STARTPTS,tpad=stop_mode=clone:stop_duration=${parado}[d]`,
+        '-map', '[b]', ...C.ENC, tmp('B.mp4'), '-map', '[d]', ...C.ENC, tmp('D.mp4'));
+    }
     // as quatro peças, sem recodificar
     const pecas = [path.join(COMUM, 'A.mp4'), tmp('B.mp4'), path.join(COMUM, 'C.mp4'), tmp('D.mp4')];
     fs.writeFileSync(tmp('lista.txt'), pecas.map((p) => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));

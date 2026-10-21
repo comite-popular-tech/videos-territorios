@@ -8,13 +8,19 @@ cd "$(dirname "$0")"
 command -v node >/dev/null || { echo "PARE: instale o Node 20+ (https://nodejs.org)"; exit 1; }
 PY=python; command -v python >/dev/null || PY=python3
 command -v $PY >/dev/null || { echo "PARE: instale o Python 3.10+"; exit 1; }
+export PYTHON=$PY  # os trabalhos que chamam Python (video-bolsa-familia --pillow) usam este
 { [ -d node_modules/@remotion/renderer ] && [ -d node_modules/ffmpeg-static ] && [ -d node_modules/hyperframes ]; } || npm i --no-audit --no-fund
 $PY -c "import edge_tts" 2>/dev/null || $PY -m pip install -q edge-tts numpy
 [ -f public/trilha.wav ] || $PY trilha.py
 # o vídeo do Bolsa Família é renderizado pelo HyperFrames: precisa do Node 22+ e do navegador dele (baixado uma vez)
+# (com --pillow ele é desenhado em Python, sem navegador: precisa só do Pillow e do numpy)
 case " $* " in *" video-bolsa-familia "*)
-  [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] || { echo "PARE: o vídeo do Bolsa Família precisa do Node 22 ou mais novo (https://nodejs.org)"; exit 1; }
-  npx --no-install hyperframes browser ensure ;;
+  if [[ " $* " == *" --pillow "* ]]; then
+    $PY -c "import PIL, numpy" 2>/dev/null || $PY -m pip install -q pillow numpy
+  else
+    [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ] || { echo "PARE: o vídeo do Bolsa Família precisa do Node 22 ou mais novo (https://nodejs.org)"; exit 1; }
+    npx --no-install hyperframes browser ensure
+  fi ;;
 esac
 echo "Pronto. Começando a produzir: pode deixar rodando e usar o computador. Para parar: Ctrl+C."
 exec node ajudar.mjs "$@"

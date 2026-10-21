@@ -68,8 +68,12 @@ vídeo (HyperFrames).
   `powershell -ExecutionPolicy Bypass -File ajudar.ps1 --trabalho video-bolsa-familia`
 - **Mac ou Linux:** `bash videos-territorios/video/ajudar.sh --trabalho video-bolsa-familia`
 
-Para testar com poucos vídeos, ponha `--limite 2` no fim; para pesar menos no computador, `--conc 1`. Tudo o que cada
-cidade precisa (falas, números, foto) vem da fila. A foto fica em
+**Sem navegador, mais rápido (Pillow + FFmpeg):** ponha `--pillow` no fim do comando. O vídeo sai igual, desenhado em
+Python por cima de fundos prontos; não precisa do Node 22 nem do navegador, só do Python (o script instala o Pillow e o
+numpy sozinho). Exemplo no Windows: `powershell -ExecutionPolicy Bypass -File ajudar.ps1 --trabalho video-bolsa-familia --pillow`.
+
+Para testar com poucos vídeos, ponha `--limite 2` no fim; para pesar menos no computador, `--conc 1` (com `--pillow`,
+`--paralelo 2`). Tudo o que cada cidade precisa (falas, números, foto) vem da fila. A foto fica em
 `https://fila-videos.boralula.workers.dev/entradas/fundos/<cidade>.jpg`.
 
 ### Dúvidas comuns
