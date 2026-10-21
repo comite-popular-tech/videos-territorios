@@ -1,8 +1,9 @@
 // Trabalho "video-insulina" da fila: "A insulina do Seu Raimundo" (Farmácia Popular, aprovado em 20/10/2026) por território.
 //   node video/trabalhos/video-insulina.mjs <pasta-entradas> <pasta-saidas> <slug ...> [--gl angle|swangle] [--conc N]
 // Seis cenas da composição Historia: três clipes do Flow (iguais em todos os vídeos), o dado da cidade (infográfico com a
-// foto ou o mapa do kit), o corte e o fecho (src/InfoFarmacia.tsx). Muda por território só a fala 1 (bairro ou cidade)
-// e a 4 (atendidos em ago/2026; cidade sem farmácia credenciada usa o número do estado). Depois do render, o ffmpeg
+// foto ou o mapa do kit), o corte e o fecho (src/InfoFarmacia.tsx). Muda por território a fala 1 (bairro ou cidade),
+// a 2 (rua da farmácia credenciada perto, quando há; senão só "na farmácia") e a 4 (atendidos em ago/2026; cidade sem
+// farmácia credenciada usa o número do estado). Depois do render, o ffmpeg
 // acelera 1,25x e mistura a música, como o historia.py final. Saída: <pasta-saidas>/<slug>/insulina.mp4.
 // Entradas por item: <slug>.json (kit_fundos.py) e <cidade>.jpg. Arquivos comuns: comum/video-insulina/ no R2
 // (insulina_dados.py --subir), baixados uma vez por máquina para video/kit/video-insulina/comum/.
@@ -28,6 +29,8 @@ const FPS = 30, ATRASO = 8, FOLGA = 36, MINIMO = 150, RESPIRO_FINAL = 60, FUSAO 
 const VOZ = 'pt-BR-AntonioNeural', TAXA = '-6%', VEL = 1.25, MUSICA = 0.25;
 const CLIPES = [240, 240, 120]; // frames de clip1..3 (8 s, 8 s e 4 s)
 const FP = JSON.parse(fs.readFileSync(path.join(VIDEO, 'farmacia_popular.json'), 'utf8'));
+// rua da farmácia credenciada perto (bairro com farmácia no mesmo bairro, cidade com uma só): insulina_farmacias.py
+const RUA = JSON.parse(fs.readFileSync(path.join(VIDEO, 'farmacia_rua.json'), 'utf8'));
 const ESTADOS = {
   AC: ['No Acre', 'Acre'], AL: ['Em Alagoas', 'Alagoas'], AP: ['No Amapá', 'Amapá'], AM: ['No Amazonas', 'Amazonas'], BA: ['Na Bahia', 'Bahia'],
   CE: ['No Ceará', 'Ceará'], DF: ['No Distrito Federal', 'Distrito Federal'], ES: ['No Espírito Santo', 'Espírito Santo'], GO: ['Em Goiás', 'Goiás'],
@@ -49,7 +52,7 @@ function falado(v) {
   return `${m} ${m === 1 ? 'milhão' : 'milhões'}${r ? ` e ${r} mil` : ''}`;
 }
 
-function roteiro(d) {
+function roteiro(d, slug) {
   const ped = d.pedidos, nomes = ped.nomes ?? {};
   const cidade = limpa(ped.municipio.municipio), uf = ped.municipio.uf, ibge = String(ped.municipio.cod_ibge);
   const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
@@ -61,7 +64,7 @@ function roteiro(d) {
   return {
     falas: [
       `Seu Raimundo mora ${bairro ? `no bairro ${bairro}` : `em ${cidade}`}. Tem diabetes e usa insulina todo dia.`,
-      'Todo mês ele pega a insulina na farmácia do bairro. E não paga nada.',
+      `Todo mês ele pega a insulina na farmácia${RUA[slug] ? ` ${RUA[slug]}` : ''}. E não paga nada.`,
       'São mais de cem reais que ficam no bolso, todo mês.',
       `${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`,
       'Bolsonaro já tentou cortar 59 por cento da Farmácia Popular. Flávio Bolsonaro planeja cortar até 250 bilhões.',
@@ -89,7 +92,7 @@ for (const slug of slugs) {
     const d = JSON.parse(fs.readFileSync(path.join(ENT, slug, `${slug}.json`), 'utf8'));
     const fundo = path.join(ENT, slug, `${slug.split('--')[0]}.jpg`);
     if (!fs.existsSync(fundo)) throw new Error('sem o fundo');
-    const r = roteiro(d);
+    const r = roteiro(d, slug);
     // voz pelo texto: as falas iguais em todos os vídeos são geradas uma vez só
     r.vozes = r.falas.map((t) => path.join(VOZES, crypto.createHash('sha1').update(`${VOZ}|${TAXA}|${t}`).digest('hex').slice(0, 16) + '.mp3'));
     itens.push({ slug, fundo, ...r });
