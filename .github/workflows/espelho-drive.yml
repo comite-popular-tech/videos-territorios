@@ -14,8 +14,8 @@ on:
         description: "materiais: video,cards,massa,atalhos,links (vazio = todos)"
         default: ""
       paralelo:
-        description: "quantos jobs ao mesmo tempo (menos = menos risco de passar da cota do Drive por minuto)"
-        default: "20"
+        description: "quantos jobs ao mesmo tempo (menos = menos risco de passar da cota do Drive; a org toda tem 20 máquinas)"
+        default: "6"
       simular:
         description: "só listar o que faria"
         type: boolean
@@ -40,7 +40,7 @@ jobs:
     timeout-minutes: 360
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJSON(inputs.paralelo || '20') }}
+      max-parallel: ${{ fromJSON(inputs.paralelo || '6') }}
       matrix:
         uf: ${{ fromJson(needs.ufs.outputs.lista) }}
     steps:
