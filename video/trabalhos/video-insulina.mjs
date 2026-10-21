@@ -14,6 +14,7 @@ import path from 'path';
 import { spawnSync } from 'child_process';
 import { bundle } from '@remotion/bundler';
 import { openBrowser, renderMedia, selectComposition } from '@remotion/renderer';
+import { FONTE_CORTE, FONTE_DADO, roteiro } from './insulina-roteiro.mjs';
 // ffmpeg do sistema, se houver; senão o do pacote ffmpeg-static (vem com o npm i: quem ajuda não precisa instalar nada)
 const FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0 ? 'ffmpeg' : (await import('ffmpeg-static')).default;
 
@@ -30,52 +31,6 @@ for (const d of [COMUM, VOZES, TMP, path.join(KIT, 'public-vazio')]) fs.mkdirSyn
 const FPS = 30, ATRASO = 8, FOLGA = 36, MINIMO = 150, RESPIRO_FINAL = 60, FUSAO = 18; // como historia.py e Historia.tsx
 const VOZ = 'pt-BR-AntonioNeural', TAXA = '-6%', VEL = 1.25, MUSICA = 0.25;
 const CLIPES = [240, 240, 120]; // frames de clip1..3 (8 s, 8 s e 4 s)
-const FP = JSON.parse(fs.readFileSync(path.join(VIDEO, 'farmacia_popular.json'), 'utf8'));
-// rua da farmácia credenciada perto (bairro com farmácia no mesmo bairro, cidade com uma só): insulina_farmacias.py
-const RUA = JSON.parse(fs.readFileSync(path.join(VIDEO, 'farmacia_rua.json'), 'utf8'));
-const ESTADOS = {
-  AC: ['No Acre', 'Acre'], AL: ['Em Alagoas', 'Alagoas'], AP: ['No Amapá', 'Amapá'], AM: ['No Amazonas', 'Amazonas'], BA: ['Na Bahia', 'Bahia'],
-  CE: ['No Ceará', 'Ceará'], DF: ['No Distrito Federal', 'Distrito Federal'], ES: ['No Espírito Santo', 'Espírito Santo'], GO: ['Em Goiás', 'Goiás'],
-  MA: ['No Maranhão', 'Maranhão'], MT: ['Em Mato Grosso', 'Mato Grosso'], MS: ['Em Mato Grosso do Sul', 'Mato Grosso do Sul'], MG: ['Em Minas Gerais', 'Minas Gerais'],
-  PA: ['No Pará', 'Pará'], PB: ['Na Paraíba', 'Paraíba'], PR: ['No Paraná', 'Paraná'], PE: ['Em Pernambuco', 'Pernambuco'], PI: ['No Piauí', 'Piauí'],
-  RJ: ['No estado do Rio de Janeiro', 'Estado do Rio de Janeiro'], RN: ['No Rio Grande do Norte', 'Rio Grande do Norte'], RS: ['No Rio Grande do Sul', 'Rio Grande do Sul'],
-  RO: ['Em Rondônia', 'Rondônia'], RR: ['Em Roraima', 'Roraima'], SC: ['Em Santa Catarina', 'Santa Catarina'], SP: ['No estado de São Paulo', 'Estado de São Paulo'],
-  SE: ['Em Sergipe', 'Sergipe'], TO: ['No Tocantins', 'Tocantins'],
-};
-const FONTE_DADO = 'Ministério da Saúde, Farmácia Popular: pessoas atendidas em ago/2026 · IBGE, Censo 2022';
-const FONTE_CORTE = 'Corte de 59%: proposta de Orçamento 2023 do governo Bolsonaro · Plano de até R$ 250 bi: Folha de S.Paulo, out/2026';
-const limpa = (s) => String(s ?? '').replace(/ /g, ' ').trim();
-
-// "576", "550 mil", "1 milhão e 200 mil" (o cartão mostra "1,2 milhão": mesmo arredondamento)
-function falado(v) {
-  if (v < 1000) return String(v);
-  if (v < 1e6) return `${Math.round(v / 1000)} mil`;
-  const d = Math.round(v / 1e5), m = Math.floor(d / 10), r = (d % 10) * 100;
-  return `${m} ${m === 1 ? 'milhão' : 'milhões'}${r ? ` e ${r} mil` : ''}`;
-}
-
-function roteiro(d, slug) {
-  const ped = d.pedidos, nomes = ped.nomes ?? {};
-  const cidade = limpa(ped.municipio.municipio), uf = ped.municipio.uf, ibge = String(ped.municipio.cod_ibge);
-  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
-  const [atend, pop] = FP.municipios[ibge] ?? [0, 0];
-  const doEstado = !atend;
-  const [a, p] = doEstado ? FP.ufs[uf] : [atend, pop];
-  const onde = doEstado ? ESTADOS[uf][0] : `Aqui em ${cidade}`;
-  const quem = a === 1 ? '1 pessoa pegou' : `${falado(a)} pessoas pegaram`;
-  return {
-    falas: [
-      `Seu Raimundo mora ${bairro ? `no bairro ${bairro}, aqui em ${cidade}` : `aqui em ${cidade}`}. Tem diabetes e usa insulina todo dia.`,
-      `Todo mês ele pega a insulina na farmácia${RUA[slug] ? ` ${RUA[slug]}` : ''}. E não paga nada.`,
-      'São mais de cem reais que ficam no bolso, todo mês.',
-      `${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`,
-      'Bolsonaro já tentou cortar 59 por cento da Farmácia Popular. Flávio Bolsonaro planeja cortar até 250 bilhões.',
-      'Compartilhe com quem pega remédio aqui na farmácia da região.',
-    ],
-    dado: { local: doEstado ? ESTADOS[uf][1] : `${cidade} - ${uf}`, atendidos: a, populacao: p, mes: FP.mes },
-  };
-}
-
 // ---------------------------------------------------------------- arquivos comuns (uma vez por máquina)
 for (const nome of ['clip1.mp4', 'clip2.mp4', 'clip3.mp4', 'farmacia.jpg', 'rua.jpg', 'musica.mp3']) {
   const destino = path.join(COMUM, nome);
