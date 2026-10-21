@@ -4,6 +4,7 @@ import React from 'react';
 import { AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { carregarFontes } from './fontes';
 import { ATRASO_VOZ, COR, FPS, Legenda, Palavra, src, trechos } from './Saude';
+import { Info, InfoFarmacia } from './InfoFarmacia';
 
 export type CenaHistoria = {
   video?: string; // mp4 em public/ (clipe do Veo); se faltar, usa a imagem
@@ -15,13 +16,14 @@ export type CenaHistoria = {
   zoom?: [number, number]; // escala no início e no fim
   foco?: string; // transform-origin
   ambiente?: number; // volume do som ambiente do clipe (0 = mudo)
+  info?: Info; // cena de infográfico desenhada no lugar do clipe (InfoFarmacia.tsx)
 };
 
 export type HistoriaProps = { cenas: CenaHistoria[]; trilha?: string };
 
 const FUSAO = 18; // frames de fusão entre cenas
 
-const Cena: React.FC<CenaHistoria & { entra: boolean }> = ({ video, imagem, dur, velocidade = 1, zoom = [1, 1], foco = '50% 50%', ambiente = 0.35, entra }) => {
+const Cena: React.FC<CenaHistoria & { entra: boolean }> = ({ video, imagem, dur, velocidade = 1, zoom = [1, 1], foco = '50% 50%', ambiente = 0.35, info, entra }) => {
   const f = useCurrentFrame();
   const esc = interpolate(f, [0, dur], zoom);
   const sai = interpolate(f, [dur - FUSAO, dur], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
@@ -29,12 +31,14 @@ const Cena: React.FC<CenaHistoria & { entra: boolean }> = ({ video, imagem, dur,
   const estilo: React.CSSProperties = { width: '100%', height: '100%', objectFit: 'cover', transform: `scale(${esc})`, transformOrigin: foco };
   return (
     <AbsoluteFill style={{ opacity: op }}>
-      {video ? (
+      {info ? (
+        <InfoFarmacia {...info} />
+      ) : video ? (
         <OffthreadVideo src={src(video)} style={estilo} playbackRate={velocidade} volume={(x) => ambiente * interpolate(x, [0, FUSAO, dur - FUSAO, dur], [0, 1, 1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })} />
       ) : (
         <Img src={src(imagem!)} style={estilo} />
       )}
-      <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 50%, rgba(5,10,20,.5) 100%)' }} />
+      {info ? null : <AbsoluteFill style={{ background: 'radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 50%, rgba(5,10,20,.5) 100%)' }} />}
     </AbsoluteFill>
   );
 };

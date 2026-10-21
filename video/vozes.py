@@ -1,5 +1,5 @@
 # Gera as locuções do lote com edge-tts (vozes neurais pt-BR da Microsoft, sem cadastro).
-#   python vozes.py <tarefas.json> <voz> [paralelas]
+#   python vozes.py <tarefas.json> <voz> [paralelas] [taxa]   (taxa: ritmo do edge-tts, padrão +12%; a história usa -6%)
 # tarefas.json: lista de {"arquivo": "caminho.mp3", "texto": "..."}. Pula arquivo que já existe com o mesmo texto
 # (guarda o texto em .txt ao lado) e grava o tempo de cada palavra em .json ao lado (legenda palavra por palavra). Tenta de novo com espera crescente quando o serviço recusa ou cai.
 # Imprime uma linha por arquivo pronto ("ok <arquivo>") ou com falha ("falha <arquivo> <erro>").
@@ -14,7 +14,7 @@ import edge_tts
 tarefas = json.load(open(sys.argv[1], encoding="utf-8"))
 voz = sys.argv[2]
 paralelas = int(sys.argv[3]) if len(sys.argv) > 3 else 4
-TAXA = "+12%"
+TAXA = sys.argv[4] if len(sys.argv) > 4 else "+12%"
 
 
 def pronto(t):
