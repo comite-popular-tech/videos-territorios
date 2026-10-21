@@ -71,15 +71,48 @@ export async function props(slug: string, it?: Item): Promise<HistoriaProps> {
   return { cenas, trilha: `${COMUM}/musica.mp3` };
 }
 
+// Tudo é baixado antes de montar, para o render não esperar a rede no meio (o que estoura o delayRender). As imagens
+// vão como blob: na memória; áudio e vídeo só esquentam o cache do navegador (o @remotion/media não lê blob:, e o
+// Worker manda Cache-Control de 1 h). Os arquivos comuns (clipes, fotos, música) ficam guardados entre um vídeo e outro.
+const comuns = new Map<string, Promise<string>>();
+async function local(url: string, liberar: string[]): Promise<string> {
+  const imagem = /\.jpe?g$/i.test(url);
+  const baixar = async () => {
+    const r = await pedir(url);
+    if (!r.ok) throw new Error(`${r.status} ao baixar ${url.replace(FILA, '')}`);
+    const b = await r.blob();
+    return imagem ? URL.createObjectURL(b) : url;
+  };
+  if (!url.startsWith(COMUM + '/') || url.startsWith(WEB + '/')) { const u = await baixar(); if (u !== url) liberar.push(u); return u; }
+  if (!comuns.has(url)) comuns.set(url, baixar().catch((e) => { comuns.delete(url); throw e; }));
+  return comuns.get(url)!;
+}
+async function baixarTudo(p: HistoriaProps, liberar: string[]): Promise<HistoriaProps> {
+  const cenas = await Promise.all(p.cenas.map(async (c) => ({
+    ...c,
+    voz: c.voz && (await local(c.voz, liberar)),
+    video: c.video && (await local(c.video, liberar)),
+    info: c.info && { ...c.info, ...('fundo' in c.info ? { fundo: await local(c.info.fundo, liberar) } : {}) },
+  }) as CenaHistoria));
+  return { cenas, trilha: p.trilha && (await local(p.trilha, liberar)) };
+}
+
 // ~2,2 Mbit/s: perto dos 11 MB do vídeo feito em Node (o 'high' dava 28 MB)
-export async function montar(p: HistoriaProps, onProgress: (fracao: number) => void, signal?: AbortSignal): Promise<Blob> {
-  const composition = { id: 'Historia', component: Historia, fps: FPS, width: 1080, height: 1920, durationInFrames: duracaoHistoria(p.cenas) };
-  const { getBlob } = await renderMediaOnWeb({
-    composition: composition as never, inputProps: p as never, container: 'mp4', videoCodec: 'h264', audioCodec: 'aac',
-    videoBitrate: 2_200_000, audioBitrate: 128_000, pageResponsiveness: 'low', signal: signal ?? null,
-    onProgress: ({ progress }) => onProgress(progress),
-  });
-  return getBlob();
+export async function montar(remoto: HistoriaProps, onProgress: (fracao: number) => void, signal?: AbortSignal): Promise<Blob> {
+  const liberar: string[] = [];
+  try {
+    const p = await baixarTudo(remoto, liberar);
+    const composition = { id: 'Historia', component: Historia, fps: FPS, width: 1080, height: 1920, durationInFrames: duracaoHistoria(p.cenas) };
+    const { getBlob } = await renderMediaOnWeb({
+      composition: composition as never, inputProps: p as never, container: 'mp4', videoCodec: 'h264', audioCodec: 'aac',
+      videoBitrate: 2_200_000, audioBitrate: 128_000, pageResponsiveness: 'low', signal: signal ?? null,
+      delayRenderTimeoutInMilliseconds: 120000, // computador lento ou ocupado: melhor esperar que perder o item
+      onProgress: ({ progress }) => onProgress(progress),
+    });
+    return await getBlob();
+  } finally {
+    liberar.forEach((u) => URL.revokeObjectURL(u));
+  }
 }
 
 export async function enviar(it: Item, video: Blob): Promise<{ duracao?: number; obs?: string }> {

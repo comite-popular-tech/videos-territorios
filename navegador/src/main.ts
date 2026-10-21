@@ -49,13 +49,22 @@ const urlDe = (b: Blob) => { const u = URL.createObjectURL(b); urls.push(u); whi
 async function montarItem(slug: string, it: Item | undefined, barra: HTMLElement, detalhe: HTMLElement): Promise<Blob> {
   let p;
   try { p = await props(slug, it); } catch (e) { throw new SemRoteiro((e as Error).message); }
-  const t0 = performance.now();
-  barra.style.width = '0%';
-  const blob = await montar(p, (f) => {
-    barra.style.width = `${(f * 100).toFixed(1)}%`;
-    const s = (performance.now() - t0) / 1000;
-    detalhe.textContent = f > 0.03 ? `${Math.round(f * 100)}% · falta ~${Math.max(1, Math.round((s / f - s) / 10) * 10)} s` : `${Math.round(f * 100)}%`;
-  });
+  let t0 = performance.now(), blob: Blob | undefined;
+  // uma segunda chance aqui antes de avisar a fila: falha passageira do computador não gasta tentativa do item
+  for (let vez = 1; !blob; vez++) {
+    t0 = performance.now(); barra.style.width = '0%';
+    try {
+      blob = await montar(p, (f) => {
+        barra.style.width = `${(f * 100).toFixed(1)}%`;
+        const s = (performance.now() - t0) / 1000;
+        detalhe.textContent = f > 0.03 ? `${Math.round(f * 100)}% · falta ~${Math.max(1, Math.round((s / f - s) / 10) * 10)} s` : `${Math.round(f * 100)}%`;
+      });
+    } catch (e) {
+      if (vez >= 2) throw e;
+      console.warn('montar falhou, tento de novo', e);
+      detalhe.textContent = 'Deu um soluço, montando de novo...';
+    }
+  }
   detalhe.textContent = `Montado em ${Math.round((performance.now() - t0) / 1000)} s (${(blob.size / 1e6).toFixed(1)} MB)`;
   return blob;
 }

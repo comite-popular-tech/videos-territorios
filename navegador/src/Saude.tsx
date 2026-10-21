@@ -72,7 +72,7 @@ const Caixa: React.FC<{ cor: string; texto: string; children: React.ReactNode; r
 );
 
 // Arquivo em public/ ou URL do servidor local do lote
-export const src = (s: string) => (/^https?:/.test(s) ? s : staticFile(s));
+export const src = (s: string) => (/^(https?|blob):/.test(s) ? s : staticFile(s)); // blob: imagens já baixadas (insulina.ts)
 
 // Tamanho do nome da cidade conforme o comprimento, para nomes longos caberem em até 3 linhas.
 const pxNome = (s: string) => (s.length <= 10 ? 190 : s.length <= 16 ? 160 : 130);
