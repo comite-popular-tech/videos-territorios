@@ -14,6 +14,8 @@ import path from 'path';
 import { spawnSync } from 'child_process';
 import { bundle } from '@remotion/bundler';
 import { openBrowser, renderMedia, selectComposition } from '@remotion/renderer';
+// ffmpeg do sistema, se houver; senão o do pacote ffmpeg-static (vem com o npm i: quem ajuda não precisa instalar nada)
+const FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0 ? 'ffmpeg' : (await import('ffmpeg-static')).default;
 
 const VIDEO = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const [ENT, SAI, ...resto] = process.argv.slice(2);
@@ -156,11 +158,11 @@ for (const it of itens) {
     const dur = (cenas.reduce((a, c) => a + c.dur, 0) - FUSAO * (cenas.length - 1)) / FPS / VEL;
     const fin = path.join(SAI, it.slug, 'insulina.mp4');
     fs.mkdirSync(path.dirname(fin), { recursive: true });
-    const f = spawnSync('ffmpeg', ['-y', '-v', 'error', '-i', bruto, '-i', path.join(COMUM, 'musica.mp3'), '-filter_complex',
+    const f = spawnSync(FFMPEG, ['-y', '-v', 'error', '-i', bruto, '-i', path.join(COMUM, 'musica.mp3'), '-filter_complex',
       `[0:v]setpts=PTS/${VEL}[v];[0:a]atempo=${VEL}[n];[1:a]atrim=0:${dur.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(dur - 4).toFixed(2)}:d=4,volume=${MUSICA}[m];[n][m]amix=inputs=2:duration=first:normalize=0[a]`,
       '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', fin], { stdio: 'inherit' });
     fs.rmSync(bruto, { force: true });
-    if (f.status !== 0) throw new Error(f.error ? `ffmpeg não roda (${f.error.code}; instale o ffmpeg)` : 'ffmpeg falhou');
+    if (f.status !== 0) throw new Error(f.error ? `ffmpeg não roda (${f.error.code})` : 'ffmpeg falhou');
     ok++;
     console.log(`  ${it.slug}: ${dur.toFixed(1)} s, render ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   } catch (e) {

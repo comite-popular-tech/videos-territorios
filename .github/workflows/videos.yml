@@ -26,7 +26,7 @@ on:
       trabalho:
         description: 'Trabalho da fila (ex. video-saude)'
         type: string
-        default: video-saude
+        default: video-insulina
       fila_url:
         description: 'URL do Worker da fila'
         type: string

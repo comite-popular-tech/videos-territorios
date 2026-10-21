@@ -1,49 +1,79 @@
-# Vídeos de Saúde por território
+# Vídeos da campanha por território
 
-Vídeo vertical "Alerta Saúde SUS" (1080×1920, cerca de 36 s) para cada um dos 6.121 territórios de saúde do Brasil:
-cidade pequena tem um vídeo, cidade grande tem um por bairro, com os números do repasse federal e o posto de saúde
-do lugar. Tudo é montado por código ([Remotion](https://www.remotion.dev/), React → MP4) a partir de dados públicos.
-É parte do material de campanha do Comitê Popular Tech, produzido no repositório
-[producao-de-conteudo-para-municipios](https://github.com/comite-popular-tech/producao-de-conteudo-para-municipios); esta cópia existe para que qualquer pessoa possa emprestar as máquinas grátis
-do GitHub Actions ao render.
+Vídeos verticais (1080×1920, cerca de 35 s) feitos para cada cidade e bairro do Brasil, com os números do lugar,
+para a campanha. Agora estamos produzindo **"A insulina do Seu Raimundo"**, sobre a Farmácia Popular; antes saiu o
+"Alerta Saúde SUS". Tudo é montado por código ([Remotion](https://www.remotion.dev/), React → MP4) a partir de dados
+públicos, pelo Comitê Popular Tech. Este repositório é aberto para que qualquer pessoa possa emprestar o computador
+para produzir os vídeos.
 
-Como funciona, cena por cena, e o que cada arquivo faz: [video/README.md](video/README.md).
+## Como ajudar com o seu computador
 
-## Como ajudar com as máquinas do GitHub (sem instalar nada)
+A campanha precisa de milhares de vídeos, um para cada cidade e bairro do Brasil, e cada um leva de 1 a 3 minutos para
+ficar pronto. Quanto mais computadores ajudando, mais rápido sai. Você não precisa saber programar: é instalar dois
+programas grátis, baixar esta pasta e deixar rodando.
 
-Renderizar os 6.121 vídeos numa máquina só leva mais de 40 horas. O GitHub dá a qualquer conta até 20 máquinas ao
-mesmo tempo, de graça. Para emprestar as suas:
+**O que acontece no seu computador:** ele pega da fila o próximo território que ainda não tem vídeo, monta o vídeo e
+envia direto para o armazenamento da campanha. Nada fica guardado na sua máquina e ninguém faz o mesmo vídeo duas
+vezes. Não precisa de senha nem de cadastro. Dá para usar o computador normalmente enquanto isso, só fica um pouco mais
+lento.
 
-1. Faça um **fork** deste repositório (botão Fork, no alto da página).
-2. No seu fork, abra a aba **Actions** e clique em **I understand my workflows, go ahead and enable them**.
-3. Em Actions, escolha **videos** à esquerda, clique em **Run workflow** e confirme (pode deixar os valores padrão:
-   20 máquinas, até a fila esvaziar).
+**Do que precisa:** Windows, Mac ou Linux, 8 GB de memória ou mais, uns 3 GB livres no disco e internet.
 
-Cada máquina pega territórios de uma fila compartilhada, renderiza e devolve o vídeo pronto; quando a fila acaba, ela
-para sozinha. Não precisa de senha nem de permissão: o workflow só lê este código e conversa com a fila pela internet.
-A rodada dura até 5h50 (limite do GitHub); se ainda houver fila, é só clicar em Run workflow de novo.
+### Windows
 
-Sem fila configurada (por exemplo, antes de ela abrir), cada máquina renderiza os 4 territórios do kit de exemplo e deixa
-os MP4 como artifact da execução, o que serve para testar.
+1. Instale o **Node.js**: em <https://nodejs.org>, baixe a versão **LTS** e instale com as opções padrão
+   (Avançar, Avançar, Concluir).
+2. Instale o **Python**: em <https://www.python.org/downloads/>, clique em *Download Python*. Na primeira tela do
+   instalador, **marque "Add python.exe to PATH"** e depois clique em *Install Now*.
+3. Baixe esta pasta: no alto desta página, clique no botão verde **Code** e depois em **Download ZIP**. Abra o ZIP e
+   extraia (botão direito → *Extrair tudo*) para um lugar fácil, como a Área de Trabalho.
+4. Entre na pasta extraída, depois na pasta **video**, e dê **dois cliques em `AJUDAR-windows.bat`**.
+   Se o Windows avisar "O Windows protegeu o computador", clique em *Mais informações* → *Executar assim mesmo*.
+5. Na primeira vez ele instala o que falta (alguns minutos). Depois aparecem linhas como
+   `pronto: Urucurituba - AM`: cada uma é um vídeo entregue. Pode deixar a janela aberta.
 
-## Rodar na sua máquina
+### Mac
 
-Precisa de Node 20+, Python 3.10+ e Git. O Chrome o Remotion baixa sozinho.
+1. Instale o **Node.js** (versão **LTS**, <https://nodejs.org>) e o **Python** (<https://www.python.org/downloads/>).
+2. Baixe esta pasta (botão verde **Code** → **Download ZIP**) e abra o ZIP. Ele vira a pasta `videos-territorios-master`
+   em Downloads.
+3. Abra o aplicativo **Terminal** (Cmd + espaço, digite "Terminal") e cole:
+
+   ```bash
+   bash ~/Downloads/videos-territorios-master/video/ajudar.sh
+   ```
+
+### Linux
+
+Com Node 20+, Python 3.10+ e Git instalados:
 
 ```bash
 git clone https://github.com/comite-popular-tech/videos-territorios.git
-cd videos-territorios/video
-npm install
-npx playwright install chromium   # converte o mapa do município em imagem
-pip install edge-tts numpy
-python trilha.py                  # gera public/trilha.wav (uma vez)
-
-node lote.mjs --exemplo --todas --frames
+bash videos-territorios/video/ajudar.sh
 ```
 
-Os vídeos saem em `saida/territorios/<território>/video/saude.mp4`, na raiz do repositório. Para ver e mexer nas
-cenas com prévia ao vivo: `npm run studio`. Para ajudar a fila pela sua máquina: `bash video/ajudar.sh`, com a
-variável `FILA_URL` apontando para a fila (placa de vídeo: `--gl angle`, só CPU: `--gl swangle`).
+### Dúvidas comuns
+
+- **Como paro?** Feche a janela (ou Ctrl+C). Os vídeos que estavam pela metade voltam para a fila sozinhos em 2 horas.
+- **Como volto a ajudar?** Faça de novo o último passo (dois cliques no `AJUDAR-windows.bat`, ou o comando no Terminal).
+- **O computador ficou muito lento.** Pare e rode com menos esforço: no Windows, abra o PowerShell na pasta `video` e rode
+  `powershell -ExecutionPolicy Bypass -File ajudar.ps1 --conc 2`; no Mac/Linux, ponha `--conc 2` no fim do comando.
+- **Apareceu "PARE: falta o Node.js" ou "falta o Python".** Instale o programa indicado, feche a janela e tente de novo.
+- **Acabou?** Quando a fila esvazia, aparece `fila vazia` e o programa para sozinho. O andamento de todos está em
+  <https://fila-videos.boralula.workers.dev/>.
+
+## Para a equipe: máquinas do GitHub Actions
+
+O workflow **videos** (aba Actions → videos → Run workflow) põe até 20 máquinas do GitHub na mesma fila. É o jeito
+de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. O campo
+**Trabalho da fila** diz qual vídeo produzir (hoje `video-insulina`). A rodada dura até 5h50 (limite do GitHub); se
+ainda houver fila, rode de novo. Com `exemplo` marcado, renderiza só os 4 territórios do kit de exemplo, para teste.
+
+## Para quem programa
+
+Como funciona, cena por cena, e o que cada arquivo faz: [video/README.md](video/README.md). Para mexer nas cenas com
+prévia ao vivo: `cd video && npm install && npm run studio`. O kit de exemplo (`node lote.mjs --exemplo --todas`)
+renderiza 4 territórios do vídeo de Saúde sem precisar da fila.
 
 ## Avisos
 
