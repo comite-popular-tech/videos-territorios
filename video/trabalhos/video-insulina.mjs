@@ -1,127 +1,192 @@
 // Trabalho "video-insulina" da fila: "A insulina do Seu Raimundo" (Farmácia Popular, aprovado em 20/10/2026) por território.
 //   node video/trabalhos/video-insulina.mjs <pasta-entradas> <pasta-saidas> <slug ...> [--gl angle|swangle] [--conc N]
-// Seis cenas da composição Historia: três clipes do Flow (iguais em todos os vídeos), o dado da cidade (infográfico com a
-// foto ou o mapa do kit), o corte e o fecho (src/InfoFarmacia.tsx). Muda por território a fala 1 (bairro ou cidade),
-// a 2 (rua da farmácia credenciada perto, quando há; senão só "na farmácia") e a 4 (atendidos em ago/2026; cidade sem
-// farmácia credenciada usa o número do estado). Depois do render, o ffmpeg
-// acelera 1,25x e mistura a música, como o historia.py final. Saída: <pasta-saidas>/<slug>/insulina.mp4.
-// Entradas por item: <slug>.json (kit_fundos.py) e <cidade>.jpg. Arquivos comuns: comum/video-insulina/ no R2
-// (insulina_dados.py --subir), baixados uma vez por máquina para video/kit/video-insulina/comum/.
-import crypto from 'crypto';
+// Montagem, não render: as cenas que não mudam já estão prontas (insulina_pecas.mjs, baixadas do R2 uma vez por
+// máquina). Por território só se faz a voz, a legenda das cenas 1 e 2 (ffmpeg), a cena 4 (dado da cidade, Remotion,
+// uns 7 s) e a mistura do áudio; as seis peças são coladas sem recodificar. Decisão do Gui em 21/10: cena com tempo
+// fixo e a fala que se ajusta (acelera um pouco, ou encurta o texto, quando não cabe). Saída 720x1280.
+// Muda por território: fala 1 (bairro e cidade), fala 2 (rua da farmácia credenciada perto, quando há) e fala 4
+// (atendidos em ago/2026; cidade sem farmácia credenciada usa o número do estado).
+// Entradas por item: <slug>.json (kit_fundos.py) e <cidade>.jpg. Saída: <pasta-saidas>/<slug>/insulina.mp4.
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
-import { spawnSync } from 'child_process';
 import { bundle } from '@remotion/bundler';
 import { openBrowser, renderMedia, selectComposition } from '@remotion/renderer';
-import { FONTE_CORTE, FONTE_DADO, roteiro } from './insulina-roteiro.mjs';
-// ffmpeg do sistema, se houver; senão o do pacote ffmpeg-static (vem com o npm i: quem ajuda não precisa instalar nada)
-const FFMPEG = spawnSync('ffmpeg', ['-version']).status === 0 ? 'ffmpeg' : (await import('ffmpeg-static')).default;
+import * as C from '../insulina_comum.mjs';
 
-const VIDEO = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const [ENT, SAI, ...resto] = process.argv.slice(2);
 const opc = (n, d) => (resto.includes(n) ? resto[resto.indexOf(n) + 1] : d);
 const slugs = resto.filter((a, i) => !a.startsWith('--') && !resto[i - 1]?.startsWith('--'));
 if (!ENT || !SAI || !slugs.length) { console.error('uso: video-insulina.mjs <entradas> <saidas> <slug ...>'); process.exit(1); }
 const FILA = (process.env.FILA_URL || 'https://fila-videos.boralula.workers.dev').replace(/\/$/, '');
-const KIT = path.join(VIDEO, 'kit', 'video-insulina');
+const KIT = path.join(C.VIDEO, 'kit', 'video-insulina');
 const COMUM = path.join(KIT, 'comum'), VOZES = path.join(KIT, 'vozes'), TMP = path.join(KIT, 'render');
 for (const d of [COMUM, VOZES, TMP, path.join(KIT, 'public-vazio')]) fs.mkdirSync(d, { recursive: true });
 
-const FPS = 30, ATRASO = 8, FOLGA = 36, MINIMO = 150, RESPIRO_FINAL = 60, FUSAO = 18; // como historia.py e Historia.tsx
-const VOZ = 'pt-BR-AntonioNeural', TAXA = '-6%', VEL = 1.25, MUSICA = 0.25;
-const CLIPES = [240, 240, 120]; // frames de clip1..3 (8 s, 8 s e 4 s)
+const FP = JSON.parse(fs.readFileSync(path.join(C.VIDEO, 'farmacia_popular.json'), 'utf8'));
+// rua da farmácia credenciada perto (bairro com farmácia no mesmo bairro ou numa rua a até 1 km do posto; cidade com uma só): insulina_farmacias.py
+const RUA = JSON.parse(fs.readFileSync(path.join(C.VIDEO, 'farmacia_rua.json'), 'utf8'));
+const ESTADOS = {
+  AC: ['No Acre', 'Acre'], AL: ['Em Alagoas', 'Alagoas'], AP: ['No Amapá', 'Amapá'], AM: ['No Amazonas', 'Amazonas'], BA: ['Na Bahia', 'Bahia'],
+  CE: ['No Ceará', 'Ceará'], DF: ['No Distrito Federal', 'Distrito Federal'], ES: ['No Espírito Santo', 'Espírito Santo'], GO: ['Em Goiás', 'Goiás'],
+  MA: ['No Maranhão', 'Maranhão'], MT: ['Em Mato Grosso', 'Mato Grosso'], MS: ['Em Mato Grosso do Sul', 'Mato Grosso do Sul'], MG: ['Em Minas Gerais', 'Minas Gerais'],
+  PA: ['No Pará', 'Pará'], PB: ['Na Paraíba', 'Paraíba'], PR: ['No Paraná', 'Paraná'], PE: ['Em Pernambuco', 'Pernambuco'], PI: ['No Piauí', 'Piauí'],
+  RJ: ['No estado do Rio de Janeiro', 'Estado do Rio de Janeiro'], RN: ['No Rio Grande do Norte', 'Rio Grande do Norte'], RS: ['No Rio Grande do Sul', 'Rio Grande do Sul'],
+  RO: ['Em Rondônia', 'Rondônia'], RR: ['Em Roraima', 'Roraima'], SC: ['Em Santa Catarina', 'Santa Catarina'], SP: ['No estado de São Paulo', 'Estado de São Paulo'],
+  SE: ['Em Sergipe', 'Sergipe'], TO: ['No Tocantins', 'Tocantins'],
+};
+const FONTE_DADO = 'Ministério da Saúde, Farmácia Popular: pessoas atendidas em ago/2026 · IBGE, Censo 2022';
+const limpa = (s) => String(s ?? '').replace(/\u00a0/g, ' ').trim();
+
+// "576", "550 mil", "1 milhão e 200 mil" (o cartão mostra "1,2 milhão": mesmo arredondamento)
+function falado(v) {
+  if (v < 1000) return String(v);
+  if (v < 1e6) return `${Math.round(v / 1000)} mil`;
+  const d = Math.round(v / 1e5), m = Math.floor(d / 10), r = (d % 10) * 100;
+  return `${m} ${m === 1 ? 'milhão' : 'milhões'}${r ? ` e ${r} mil` : ''}`;
+}
+
+// Falas variáveis, cada uma com as versões mais curtas para quando a cheia não cabe na janela da cena
+function roteiro(d, slug) {
+  const ped = d.pedidos, nomes = ped.nomes ?? {};
+  const cidade = limpa(ped.municipio.municipio), uf = ped.municipio.uf, ibge = String(ped.municipio.cod_ibge);
+  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
+  const [atend, pop] = FP.municipios[ibge] ?? [0, 0];
+  const doEstado = !atend;
+  const [a, p] = doEstado ? FP.ufs[uf] : [atend, pop];
+  const onde = doEstado ? ESTADOS[uf][0] : `Aqui em ${cidade}`;
+  const quem = a === 1 ? '1 pessoa pegou' : `${falado(a)} pessoas pegaram`;
+  const fim = ' Tem diabetes e usa insulina todo dia.';
+  return {
+    falas: {
+      0: bairro ? [`Seu Raimundo mora no bairro ${bairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora no ${bairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui em ${cidade}.${fim}`]
+        : [`Seu Raimundo mora aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui.${fim}`],
+      1: [...(RUA[slug] ? [`Todo mês ele pega a insulina na farmácia ${RUA[slug]}. E não paga nada.`] : []), 'Todo mês ele pega a insulina na farmácia. E não paga nada.'],
+      3: [`${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`, `${onde}, ${quem} remédio de graça em ${FP.mes}.`],
+    },
+    dado: { local: doEstado ? ESTADOS[uf][1] : `${cidade} - ${uf}`, atendidos: a, populacao: p, mes: FP.mes },
+  };
+}
+
 // ---------------------------------------------------------------- arquivos comuns (uma vez por máquina)
-for (const nome of ['clip1.mp4', 'clip2.mp4', 'clip3.mp4', 'farmacia.jpg', 'rua.jpg', 'musica.mp3']) {
+const PECAS = ['pecas/peca1.mp4', 'pecas/peca2.mp4', 'pecas/peca3.mp4', 'pecas/peca5.mp4', 'pecas/peca6.mp4', 'pecas/duracoes.json'];
+for (const nome of ['clip1.mp4', 'clip2.mp4', 'clip3.mp4', 'musica.mp3', ...PECAS]) {
   const destino = path.join(COMUM, nome);
   if (fs.existsSync(destino)) continue;
-  const local = path.join(VIDEO, 'public', 'insulina', nome); // na máquina do Gui já estão aqui
+  fs.mkdirSync(path.dirname(destino), { recursive: true });
+  const local = path.join(C.VIDEO, 'public', 'insulina', nome); // na máquina do Gui já estão aqui
   if (fs.existsSync(local)) { fs.copyFileSync(local, destino); continue; }
   const r = await fetch(`${FILA}/entradas/comum/video-insulina/${nome}`);
   if (!r.ok) { console.error(`sem o arquivo comum ${nome} (${r.status})`); process.exit(1); }
   fs.writeFileSync(destino, Buffer.from(await r.arrayBuffer()));
 }
+const DUR = JSON.parse(fs.readFileSync(path.join(COMUM, 'pecas/duracoes.json'), 'utf8')).dur; // frames de render de cada cena
+const TOTAL = DUR.reduce((a, b) => a + b, 0) / C.FPS / C.VEL;
 
-// ---------------------------------------------------------------- roteiros e vozes
+// ---------------------------------------------------------------- roteiros e vozes (fala igual é gerada uma vez)
 const itens = [];
 for (const slug of slugs) {
   try {
     const d = JSON.parse(fs.readFileSync(path.join(ENT, slug, `${slug}.json`), 'utf8'));
     const fundo = path.join(ENT, slug, `${slug.split('--')[0]}.jpg`);
     if (!fs.existsSync(fundo)) throw new Error('sem o fundo');
-    const r = roteiro(d, slug);
-    // voz pelo texto: as falas iguais em todos os vídeos são geradas uma vez só
-    r.vozes = r.falas.map((t) => path.join(VOZES, crypto.createHash('sha1').update(`${VOZ}|${TAXA}|${t}`).digest('hex').slice(0, 16) + '.mp3'));
-    itens.push({ slug, fundo, ...r });
+    itens.push({ slug, fundo, ...roteiro(d, slug) });
   } catch (e) {
     console.log(`  ${slug}: entradas incompletas (${e.message})`);
   }
 }
 if (!itens.length) process.exit(1);
-const tarefas = [...new Map(itens.flatMap((it) => it.falas.map((texto, i) => [it.vozes[i], { arquivo: it.vozes[i], texto }]))).values()];
-const tj = path.join(KIT, '_tarefas.json');
-fs.writeFileSync(tj, JSON.stringify(tarefas));
-spawnSync(process.platform === 'win32' ? 'python' : 'python3', [path.join(VIDEO, 'vozes.py'), tj, VOZ, '6', TAXA], { stdio: 'inherit' });
-
-// ---------------------------------------------------------------- servidor local (comuns, vozes, fundos)
-const TIPOS = { '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
-const PASTAS = { comum: COMUM, vozes: VOZES, ent: path.resolve(ENT) };
-const servidor = http.createServer((req, res) => {
-  const [, raiz, ...resto] = decodeURIComponent(req.url.split('?')[0]).split('/');
-  const arq = PASTAS[raiz] && path.join(PASTAS[raiz], ...resto);
-  if (!arq || resto.includes('..') || !fs.existsSync(arq)) { res.writeHead(404); return res.end(); }
-  const tam = fs.statSync(arq).size, tipo = TIPOS[path.extname(arq)] ?? 'application/octet-stream';
-  const m = /bytes=(\d*)-(\d*)/.exec(req.headers.range ?? '');
-  if (m) { // o OffthreadVideo pede pedaços do MP4
-    const ini = m[1] ? +m[1] : tam - +m[2], fim = m[1] && m[2] ? +m[2] : tam - 1;
-    res.writeHead(206, { 'Content-Type': tipo, 'Content-Range': `bytes ${ini}-${fim}/${tam}`, 'Content-Length': fim - ini + 1, 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': '*' });
-    return fs.createReadStream(arq, { start: ini, end: fim }).pipe(res);
+// gera as versões cheias; quem não couber gera a versão seguinte (poucos casos: a janela já tem folga)
+const variaveis = [0, 1, 3];
+let pendentes = itens.map((it) => ({ it, versao: Object.fromEntries(variaveis.map((i) => [i, 0])) }));
+while (pendentes.length) {
+  C.gerarVozes(VOZES, [...Object.values(C.FIXAS), ...pendentes.flatMap(({ it, versao }) => variaveis.map((i) => it.falas[i][versao[i]]))]);
+  const ainda = [];
+  for (const p of pendentes) {
+    p.it.texto ??= {}; p.it.extra ??= {}; p.it.leg ??= {};
+    let refaz = false;
+    for (const i of variaveis) {
+      if (p.it.texto[i]) continue;
+      const texto = p.it.falas[i][p.versao[i]];
+      const leg = C.legendaDe(texto, VOZES);
+      const extra = Math.max(1, C.fimDaFala(leg) / C.JANELAS[i]); // quanto a fala precisa acelerar a mais para caber
+      if (extra > C.EXTRA_MAX && p.versao[i] + 1 < p.it.falas[i].length) { p.versao[i]++; refaz = true; continue; }
+      if (extra > C.EXTRA_MAX) console.log(`  ${p.it.slug}: fala ${i + 1} não cabe nem encurtada (${extra.toFixed(2)}x)`);
+      Object.assign(p.it, { texto: { ...p.it.texto, [i]: texto }, extra: { ...p.it.extra, [i]: Math.min(extra, C.EXTRA_MAX) }, leg: { ...p.it.leg, [i]: leg } });
+      if (p.versao[i]) console.log(`  ${p.it.slug}: fala ${i + 1} encurtada (${texto})`);
+    }
+    if (refaz) ainda.push(p);
   }
-  res.writeHead(200, { 'Content-Type': tipo, 'Content-Length': tam, 'Accept-Ranges': 'bytes', 'Access-Control-Allow-Origin': '*' });
+  pendentes = ainda;
+}
+for (const i of [2, 4, 5]) for (const it of itens) { it.texto[i] = C.FIXAS[i]; it.extra[i] = 1; }
+
+// ---------------------------------------------------------------- servidor local (fundos para a cena do dado)
+const servidor = http.createServer((req, res) => {
+  const arq = path.join(path.resolve(ENT), decodeURIComponent(req.url.split('?')[0]));
+  if (!arq.startsWith(path.resolve(ENT)) || !fs.existsSync(arq)) { res.writeHead(404); return res.end(); }
+  res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Access-Control-Allow-Origin': '*' });
   fs.createReadStream(arq).pipe(res);
 });
 await new Promise((ok) => servidor.listen(0, '127.0.0.1', ok));
 const BASE = `http://127.0.0.1:${servidor.address().port}`;
-const url = (pasta, arq) => `${BASE}/${pasta}/${path.relative(PASTAS[pasta], arq).split(path.sep).map(encodeURIComponent).join('/')}`;
 
-// ---------------------------------------------------------------- render (um projeto para o lote todo)
-const serveUrl = await bundle({ entryPoint: path.join(VIDEO, 'src/index.ts'), publicDir: path.join(KIT, 'public-vazio') });
+// ---------------------------------------------------------------- montagem
+const serveUrl = await bundle({ entryPoint: path.join(C.VIDEO, 'src/index.ts'), publicDir: path.join(KIT, 'public-vazio') });
 const browser = await openBrowser('chrome', { chromiumOptions: { gl: opc('--gl', 'angle') } });
 const CONC = +opc('--conc', 4);
 let ok = 0;
 for (const it of itens) {
   const t0 = Date.now();
+  const tmp = (n) => path.join(TMP, `${it.slug}-${n}`);
   try {
-    const cenas = it.falas.map((_, i) => {
-      const leg = JSON.parse(fs.readFileSync(it.vozes[i].replace(/\.mp3$/, '.json'), 'utf8'));
-      const fim = leg[leg.length - 1][0] + leg[leg.length - 1][1];
-      const dur = Math.max(MINIMO, ATRASO + Math.round(fim * FPS) + FOLGA) + (i === 5 ? RESPIRO_FINAL : 0);
-      const c = { voz: url('vozes', it.vozes[i]), legenda: leg, dur };
-      if (i < 3) return { ...c, video: url('comum', path.join(COMUM, `clip${i + 1}.mp4`)), velocidade: Math.min(1, CLIPES[i] / dur), ambiente: 0.35 };
-      if (i === 3) return { ...c, info: { tipo: 'dado', ...it.dado, fundo: url('ent', it.fundo), fonte: FONTE_DADO } };
-      if (i === 4) {
-        const flavio = leg.find((p) => p[2].replace(/[.,]/g, '') === 'Flávio');
-        return { ...c, info: { tipo: 'corte', troca: ATRASO + Math.round((flavio?.[0] ?? fim / 2) * FPS), fundo: url('comum', path.join(COMUM, 'farmacia.jpg')), fonte: FONTE_CORTE } };
-      }
-      return { ...c, info: { tipo: 'fecho', fundo: url('comum', path.join(COMUM, 'rua.jpg')) } };
-    });
-    const props = { cenas, trilha: '' };
-    const bruto = path.join(TMP, `${it.slug}.mp4`);
+    // cena 4: a única desenhada por território (uns 7 s), sem legenda, depois acelerada
+    const props = { cenas: [{ dur: DUR[3], legenda: [], info: { tipo: 'dado', ...it.dado, fundo: `${BASE}/${it.slug}/${path.basename(it.fundo)}`, fonte: FONTE_DADO } }], trilha: '', entraPrimeira: true };
     const composition = await selectComposition({ serveUrl, id: 'Historia', inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
-    await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: bruto, inputProps: props, concurrency: CONC, x264Preset: 'veryfast', imageFormat: 'jpeg', puppeteerInstance: browser, logLevel: 'error', timeoutInMilliseconds: 120000 });
-    // final: 1,25x (vídeo e voz, sem mudar o tom) e a música por baixo, entrando e saindo em fade
-    const dur = (cenas.reduce((a, c) => a + c.dur, 0) - FUSAO * (cenas.length - 1)) / FPS / VEL;
+    await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: tmp('bruto4.mp4'), inputProps: props, concurrency: CONC, scale: C.ESCALA, x264Preset: 'veryfast', crf: 16, imageFormat: 'jpeg', puppeteerInstance: browser, logLevel: 'error', timeoutInMilliseconds: 120000 });
+    // legendas das cenas variáveis (tempos relativos ao começo de cada peça, já no tempo final)
+    const pecas = [];
+    for (const i of [0, 1, 2, 3, 4, 5]) {
+      if (i in C.FIXAS) { pecas.push(path.join(COMUM, `pecas/peca${i + 1}.mp4`)); continue; }
+      const assArq = tmp(`${i + 1}.ass`);
+      fs.writeFileSync(assArq, C.ass(it.leg[i], { extra: it.extra[i] }));
+      const entrada = i === 3 ? tmp('bruto4.mp4') : path.join(COMUM, `pecas/peca${i + 1}.mp4`);
+      const filtros = [...(i === 3 ? [`setpts=PTS/${C.VEL}`, `fps=${C.FPS}`] : []), C.filtroAss(assArq)];
+      C.ffmpeg('-i', entrada, '-vf', filtros.join(','), ...C.ENC, tmp(`p${i + 1}.mp4`));
+      pecas.push(tmp(`p${i + 1}.mp4`));
+    }
+    // cola as seis peças sem recodificar
+    fs.writeFileSync(tmp('lista.txt'), pecas.map((p) => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));
+    C.ffmpeg('-f', 'concat', '-safe', '0', '-i', tmp('lista.txt'), '-c', 'copy', tmp('video.mp4'));
+    // áudio: vozes no começo de cada cena (aceleradas 1,25x e, se preciso, um pouco mais), som ambiente dos três clipes e a música
+    const entradas = [], filtros = [], mix = [];
+    const add = (arq) => { entradas.push('-i', arq); return entradas.length / 2 - 1; };
+    for (const i of [0, 1, 2, 3, 4, 5]) {
+      const n = add(C.vozArquivo(VOZES, it.texto[i]));
+      const atraso = Math.round((C.inicioFinal(DUR, i) + C.ATRASO / C.FPS / C.VEL) * 1000);
+      filtros.push(`[${n}:a]atempo=${(C.VEL * it.extra[i]).toFixed(4)},adelay=${atraso}|${atraso}[v${i}]`);
+      mix.push(`[v${i}]`);
+    }
+    for (const i of [0, 1, 2]) {
+      const n = add(path.join(COMUM, `clip${i + 1}.mp4`));
+      const vel = Math.min(1, C.CLIPES[i] / DUR[i]), seg = DUR[i] / C.FPS / C.VEL, atraso = Math.round(C.inicioFinal(DUR, i) * 1000);
+      filtros.push(`[${n}:a]atempo=${(C.VEL * vel).toFixed(4)},atrim=0:${seg.toFixed(3)},afade=t=in:d=0.5,afade=t=out:st=${(seg - 0.6).toFixed(3)}:d=0.6,volume=${C.AMBIENTE},adelay=${atraso}|${atraso}[a${i}]`);
+      mix.push(`[a${i}]`);
+    }
+    const m = add(path.join(COMUM, 'musica.mp3'));
+    filtros.push(`[${m}:a]atrim=0:${TOTAL.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(TOTAL - 4).toFixed(2)}:d=4,volume=${C.MUSICA}[mu]`);
+    mix.push('[mu]');
+    filtros.push(`${mix.join('')}amix=inputs=${mix.length}:duration=longest:normalize=0,atrim=0:${TOTAL.toFixed(3)}[a]`);
+    C.ffmpeg(...entradas, '-filter_complex', filtros.join(';'), '-map', '[a]', '-c:a', 'aac', '-b:a', '160k', tmp('audio.m4a'));
     const fin = path.join(SAI, it.slug, 'insulina.mp4');
     fs.mkdirSync(path.dirname(fin), { recursive: true });
-    const f = spawnSync(FFMPEG, ['-y', '-v', 'error', '-i', bruto, '-i', path.join(COMUM, 'musica.mp3'), '-filter_complex',
-      `[0:v]setpts=PTS/${VEL}[v];[0:a]atempo=${VEL}[n];[1:a]atrim=0:${dur.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(dur - 4).toFixed(2)}:d=4,volume=${MUSICA}[m];[n][m]amix=inputs=2:duration=first:normalize=0[a]`,
-      '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', fin], { stdio: 'inherit' });
-    fs.rmSync(bruto, { force: true });
-    if (f.status !== 0) throw new Error(f.error ? `ffmpeg não roda (${f.error.code})` : 'ffmpeg falhou');
+    C.ffmpeg('-i', tmp('video.mp4'), '-i', tmp('audio.m4a'), '-c', 'copy', '-shortest', '-movflags', '+faststart', fin);
     ok++;
-    console.log(`  ${it.slug}: ${dur.toFixed(1)} s, render ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    console.log(`  ${it.slug}: ${TOTAL.toFixed(1)} s, montagem ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   } catch (e) {
     console.log(`  ${it.slug}: falhou (${e.message})`);
+  } finally {
+    for (const f of fs.readdirSync(TMP)) if (f.startsWith(it.slug + '-')) fs.rmSync(path.join(TMP, f), { force: true });
   }
 }
 await browser.close({ silent: true });

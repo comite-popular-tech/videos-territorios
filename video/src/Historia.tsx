@@ -19,7 +19,8 @@ export type CenaHistoria = {
   info?: Info; // cena de infográfico desenhada no lugar do clipe (InfoFarmacia.tsx)
 };
 
-export type HistoriaProps = { cenas: CenaHistoria[]; trilha?: string };
+// entraPrimeira: a primeira cena também entra em fusão a partir do fundo (peça avulsa do meio do vídeo, video-insulina)
+export type HistoriaProps = { cenas: CenaHistoria[]; trilha?: string; entraPrimeira?: boolean };
 
 const FUSAO = 18; // frames de fusão entre cenas
 
@@ -43,7 +44,7 @@ const Cena: React.FC<CenaHistoria & { entra: boolean }> = ({ video, imagem, dur,
   );
 };
 
-export const Historia: React.FC<HistoriaProps> = ({ cenas, trilha }) => {
+export const Historia: React.FC<HistoriaProps> = ({ cenas, trilha, entraPrimeira }) => {
   carregarFontes();
   const { durationInFrames } = useVideoConfig();
   const inicios = cenas.map((_, i) => cenas.slice(0, i).reduce((a, c) => a + c.dur, 0) - i * FUSAO);
@@ -52,7 +53,7 @@ export const Historia: React.FC<HistoriaProps> = ({ cenas, trilha }) => {
     <AbsoluteFill style={{ background: COR.fundo }}>
       {cenas.map((c, i) => (
         <Sequence key={i} from={inicios[i]} durationInFrames={c.dur}>
-          <Cena {...c} entra={i > 0} />
+          <Cena {...c} entra={i > 0 || !!entraPrimeira} />
         </Sequence>
       ))}
       <Legenda lista={lista} cor={COR.vermelho} />
