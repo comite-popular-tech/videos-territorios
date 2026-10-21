@@ -53,16 +53,29 @@ def base_da_cidade(cid) -> str:
     return f"{DESTINO}/{regiao}/{uf}/{intermediaria}/{nome}"
 
 
+def rotulos(terrs) -> dict:
+    """slug -> bairro no nome do arquivo ("" na cidade de um território só). Bairro repetido na mesma cidade (Manaus tem
+    cinco "Zona Rural") ganha número na ordem do índice: "Zona Rural", "Zona Rural 2", ..."""
+    if len(terrs) == 1:
+        return {terrs[0][0]: ""}
+    vistos, out = {}, {}
+    for t in terrs:
+        b = t[1] or ""
+        vistos[b] = vistos.get(b, 0) + 1
+        out[t[0]] = b if vistos[b] == 1 else f"{b} {vistos[b]}".strip()
+    return out
+
+
 def executar(cid, rc, so, simular):
     terrs = cid[5]
     base = base_da_cidade(cid)
     ja = {i["Path"][len(base) + 1:] for i in rc.listar(base) if not i["IsDir"]}
-    varios = len(terrs) > 1
+    nomes = rotulos(terrs)
     passos = []
     for m in so:
         pasta, rotulo, chave = MATERIAIS[m]
         for t in terrs:
-            arq = f"{pasta}/{rotulo}{' - ' + t[1] if varios and t[1] else ''}.mp4"
+            arq = f"{pasta}/{rotulo}{' - ' + nomes[t[0]] if nomes[t[0]] else ''}.mp4"
             url = f"{FILA}/{chave.format(slug=t[0])}"
             if arq not in ja and existe_no_r2(url):
                 passos.append((arq, url))
