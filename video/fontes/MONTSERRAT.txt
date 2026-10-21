@@ -1,0 +1,2 @@
+Montserrat-Bold.ttf e Montserrat-Medium.ttf: Copyright 2011 The Montserrat Project Authors
+(https://github.com/JulietaUla/Montserrat), licenciadas pela SIL Open Font License 1.1 (o texto da licença está em OFL.txt).

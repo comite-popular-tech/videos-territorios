@@ -76,6 +76,7 @@ jobs:
           python-version: '3.11'
 
       - name: Cache do node_modules (inclui o Chrome do Remotion) e do Chromium do Playwright
+        if: inputs.trabalho != 'video-pedemeia'
         uses: actions/cache@v4
         with:
           path: |
@@ -86,6 +87,11 @@ jobs:
       - name: Dependências
         working-directory: video
         run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }
+          if [ "${{ inputs.trabalho }}" = "video-pedemeia" ]; then   # só Python + ffmpeg: sem Remotion nem navegador
+            pip install --quiet edge-tts pillow
+            exit 0
+          fi
           npm install --no-audit --no-fund
           npx remotion browser ensure
           command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }   # video-insulina: aceleração e música no fim

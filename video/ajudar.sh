@@ -9,6 +9,13 @@ command -v node >/dev/null || { echo "PARE: instale o Node 20+ (https://nodejs.o
 PY=python; command -v python >/dev/null || PY=python3
 command -v $PY >/dev/null || { echo "PARE: instale o Python 3.10+"; exit 1; }
 export PYTHON=$PY  # os trabalhos que chamam Python (video-bolsa-familia --pillow) usam este
+if [[ " $* " == *" video-pedemeia "* ]]; then
+  # o Pé-de-Meia monta só em Python + ffmpeg (trabalhos/video_pedemeia.py): sem Remotion, sem navegador, sem npm i
+  command -v ffmpeg >/dev/null || { echo "PARE: instale o ffmpeg (https://ffmpeg.org) e deixe no PATH"; exit 1; }
+  $PY -c "import edge_tts, PIL" 2>/dev/null || $PY -m pip install -q edge-tts pillow
+  echo "Pronto. Começando a produzir: pode deixar rodando e usar o computador. Para parar: Ctrl+C."
+  exec node ajudar.mjs "$@"
+fi
 { [ -d node_modules/@remotion/renderer ] && [ -d node_modules/ffmpeg-static ] && [ -d node_modules/hyperframes ]; } || npm i --no-audit --no-fund
 $PY -c "import edge_tts" 2>/dev/null || $PY -m pip install -q edge-tts numpy
 [ -f public/trilha.wav ] || $PY trilha.py
