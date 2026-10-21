@@ -84,7 +84,7 @@ jobs:
         run: |
           npm install --no-audit --no-fund
           npx remotion browser ensure
-          command -v ffmpeg >/dev/null || sudo apt-get install -y -qq ffmpeg   # video-insulina: aceleração e música no fim
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg; }   # video-insulina: aceleração e música no fim
           npx playwright install --with-deps chromium
           pip install --quiet edge-tts numpy
           python trilha.py
