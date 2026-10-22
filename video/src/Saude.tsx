@@ -135,7 +135,10 @@ const Numero: Cena = ({ cidade, valorAno, ubs, artigo, unidade, generica, dur, l
   const entra = spring({ frame: f, fps, config: { damping: 20 } });
   const conta = interpolate(f, [10, 70], [0, 1], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
   const final = milhares(valorAno);
-  const total = conta >= 1 ? final : milhares(valorAno * (1 - Math.pow(1 - conta, 3)));
+  // a contagem sobe já na escala do valor final (0 → 1,3 milhão), sem passar por "999 mil" e voltar para "1" (Gui, 22/10)
+  const escala = valorAno >= 1e6 ? 1e6 : valorAno >= 1e3 ? 1e3 : 1, casas = escala === 1e6 ? 1 : 0;
+  const parcial = (valorAno * (1 - Math.pow(1 - conta, 3))) / escala;
+  const total = conta >= 1 ? final : { num: (Math.round(parcial * 10 ** casas) / 10 ** casas).toLocaleString('pt-BR', { maximumFractionDigits: casas }), sufixo: final.sufixo };
   const porUbs = milhares(valorAno / Math.max(ubs, 1));
   // a segunda frase entra quando a fala chega em "Em média" (ou no nome da UBS, quando é uma só)
   const segunda = spring({ frame: f - naPalavra(leg, ubs === 1 ? 'para' : 'média', dur, 0.52), fps, config: { damping: 18 } });
