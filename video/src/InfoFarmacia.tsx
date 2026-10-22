@@ -11,16 +11,16 @@ export type Info =
   // local: rótulo do alfinete ("São Paulo - SP", ou o estado quando a cidade não tem farmácia credenciada)
   | { tipo: 'dado'; local: string; atendidos: number; populacao: number; mes: string; fundo: string; fonte: string }
   | { tipo: 'corte'; troca: number; fundo: string; fonte: string } // troca = frame em que a fala passa para o plano de R$ 250 bi
-  | { tipo: 'fecho'; fundo: string };
+  | { tipo: 'fecho'; fundo: string; frase?: string }; // frase: a tarja verde embaixo de COMPARTILHE
 
-const ARCHIVO: React.CSSProperties = { fontFamily: 'Archivo', fontWeight: 900, fontStretch: '75%', lineHeight: 0.92 };
-const MONT: React.CSSProperties = { fontFamily: 'Montserrat', fontWeight: 700 };
-const VERDE = '#16A34A';
-const CARTAO = '#F7F4EC'; // papel claro, quente como a luz dos clipes
-const claro = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
+export const ARCHIVO: React.CSSProperties = { fontFamily: 'Archivo', fontWeight: 900, fontStretch: '75%', lineHeight: 0.92 };
+export const MONT: React.CSSProperties = { fontFamily: 'Montserrat', fontWeight: 700 };
+export const VERDE = '#16A34A';
+export const CARTAO = '#F7F4EC'; // papel claro, quente como a luz dos clipes
+export const claro = { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' } as const;
 
 // Imagem de fundo em tela cheia, com aproximação lenta; cinza (0 a 1) e escuro (0 a 1) animáveis por quem chama
-const Foto: React.FC<{ arquivo: string; cinza?: number; escuro?: number; zoom?: [number, number]; dur?: number; foco?: string }> = ({
+export const Foto: React.FC<{ arquivo: string; cinza?: number; escuro?: number; zoom?: [number, number]; dur?: number; foco?: string }> = ({
   arquivo, cinza = 0, escuro = 0, zoom = [1.04, 1.12], dur = 240, foco = '50% 50%',
 }) => {
   const f = useCurrentFrame();
@@ -35,7 +35,7 @@ const Foto: React.FC<{ arquivo: string; cinza?: number; escuro?: number; zoom?: 
   );
 };
 
-const Fonte: React.FC<{ texto: string; cor?: string }> = ({ texto, cor = 'rgba(255,255,255,.6)' }) => (
+export const Fonte: React.FC<{ texto: string; cor?: string }> = ({ texto, cor = 'rgba(255,255,255,.6)' }) => (
   <div style={{ ...MONT, fontWeight: 500, position: 'absolute', left: 60, right: 60, bottom: 300, fontSize: 24, color: cor, textAlign: 'center' }}>{texto}</div>
 );
 
@@ -47,7 +47,7 @@ const Pessoa: React.FC<{ cor: string; tam: number }> = ({ cor, tam }) => (
   </svg>
 );
 
-const Alfinete: React.FC<{ tam: number; cor: string }> = ({ tam, cor }) => (
+export const Alfinete: React.FC<{ tam: number; cor: string }> = ({ tam, cor }) => (
   <svg width={tam} height={tam * 1.33} viewBox="0 0 24 32">
     <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 20 12 20s12-11 12-20C24 5.4 18.6 0 12 0z" fill={cor} />
     <circle cx="12" cy="12" r="5" fill="#fff" />
@@ -55,7 +55,7 @@ const Alfinete: React.FC<{ tam: number; cor: string }> = ({ tam, cor }) => (
 );
 
 // "576", "550 mil", "1,2 milhão": o número do cartão no mesmo arredondamento da fala
-function numero(v: number): [string, string] {
+export function numero(v: number): [string, string] {
   if (v < 1000) return [String(Math.round(v)), ''];
   if (v < 1e6) return [Math.round(v / 1000).toLocaleString('pt-BR'), 'mil'];
   const m = Math.round(v / 1e5) / 10;
@@ -172,7 +172,7 @@ const Corte: React.FC<Extract<Info, { tipo: 'corte' }>> = ({ troca, fundo, fonte
   );
 };
 
-const Fecho: React.FC<Extract<Info, { tipo: 'fecho' }>> = ({ fundo }) => {
+const Fecho: React.FC<Extract<Info, { tipo: 'fecho' }>> = ({ fundo, frase = 'Farmácia Popular é direito seu' }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const a = spring({ frame: f - 16, fps, config: { damping: 14 } });
@@ -189,7 +189,7 @@ const Fecho: React.FC<Extract<Info, { tipo: 'fecho' }>> = ({ fundo }) => {
           </svg>
         </div>
         <div style={{ ...ARCHIVO, fontSize: 150, color: COR.branco, marginTop: 60, opacity: b, transform: `translateY(${(1 - b) * 40}px)`, textShadow: '0 8px 24px rgba(0,0,0,.5)' }}>COMPARTILHE</div>
-        <div style={{ ...MONT, fontSize: 44, color: COR.branco, marginTop: 24, opacity: b, background: 'rgba(22,163,74,.9)', padding: '8px 24px', borderRadius: 12 }}>Farmácia Popular é direito seu</div>
+        <div style={{ ...MONT, fontSize: 44, color: COR.branco, marginTop: 24, opacity: b, background: 'rgba(22,163,74,.9)', padding: '8px 24px', borderRadius: 12 }}>{frase}</div>
       </div>
     </AbsoluteFill>
   );

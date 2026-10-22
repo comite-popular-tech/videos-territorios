@@ -5,6 +5,8 @@ import { AbsoluteFill, Audio, Img, OffthreadVideo, Sequence, interpolate, useCur
 import { carregarFontes } from './fontes';
 import { ATRASO_VOZ, COR, FPS, Legenda, Palavra, src, trechos } from './Saude';
 import { Info, InfoFarmacia } from './InfoFarmacia';
+import { InfoPdm, InfoPeDeMeia } from './InfoPeDeMeia';
+import { InfoMaisMedicos, InfoMm } from './InfoMaisMedicos';
 
 export type CenaHistoria = {
   video?: string; // mp4 em public/ (clipe do Veo); se faltar, usa a imagem
@@ -16,7 +18,7 @@ export type CenaHistoria = {
   zoom?: [number, number]; // escala no início e no fim
   foco?: string; // transform-origin
   ambiente?: number; // volume do som ambiente do clipe (0 = mudo)
-  info?: Info; // cena de infográfico desenhada no lugar do clipe (InfoFarmacia.tsx)
+  info?: Info | InfoPdm | InfoMm; // cena de infográfico desenhada no lugar do clipe (InfoFarmacia.tsx, InfoPeDeMeia.tsx, InfoMaisMedicos.tsx)
 };
 
 // entraPrimeira: a primeira cena também entra em fusão a partir do fundo (peça avulsa do meio do vídeo, video-insulina)
@@ -33,7 +35,7 @@ const Cena: React.FC<CenaHistoria & { entra: boolean }> = ({ video, imagem, dur,
   return (
     <AbsoluteFill style={{ opacity: op }}>
       {info ? (
-        <InfoFarmacia {...info} />
+        info.tipo.startsWith('pdm_') ? <InfoPeDeMeia {...(info as InfoPdm)} /> : info.tipo.startsWith('mm_') ? <InfoMaisMedicos {...(info as InfoMm)} /> : <InfoFarmacia {...(info as Info)} />
       ) : video ? (
         <OffthreadVideo src={src(video)} style={estilo} playbackRate={velocidade} volume={(x) => ambiente * interpolate(x, [0, FUSAO, dur - FUSAO, dur], [0, 1, 1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' })} />
       ) : (
