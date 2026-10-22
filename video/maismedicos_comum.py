@@ -17,6 +17,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import lugar_falado  # noqa: E402  ("no Capão Redondo", "na Vila Prudente": nunca "no bairro X")
 from pedemeia_comum import (ALT, ATRASO, ENC, ESTADOS, FOLGA, FONTES, FPS, LARG, RESPIRO_FINAL, VEL, VIDEO,  # noqa: E402,F401
                             ass, ffmpeg, filtro_ass, fim_da_fala, gerar_vozes, legenda_de, limpa, voz_arquivo)
 
@@ -65,10 +66,11 @@ def roteiro(ped: dict, mm: dict) -> dict:
     if regra == "fora":
         return None
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
+    no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
     longo, curto = "Todo mês ele se consulta no posto de saúde com a doutora Ana.", "Todo mês ele vê a doutora Ana no posto."
-    if bairro:
-        f0 = [f"Seu Raimundo mora no bairro {bairro}, aqui em {cidade}. {longo}",
-              f"Seu Raimundo mora no bairro {bairro}, aqui em {cidade}. {curto}",
+    if no_bairro:
+        f0 = [f"Seu Raimundo mora {no_bairro}, aqui em {cidade}. {longo}",
+              f"Seu Raimundo mora {no_bairro}, aqui em {cidade}. {curto}",
               f"Seu Raimundo mora aqui em {cidade}. {curto}"]
     else:
         f0 = [f"Seu Raimundo mora aqui em {cidade}. {longo}", f"Seu Raimundo mora aqui em {cidade}. {curto}"]
@@ -85,13 +87,15 @@ def roteiro(ped: dict, mm: dict) -> dict:
     hoje = f"Hoje são {falado(agora)}." if agora > 1 else "Hoje tem 1."
     f3 = [f"{onde}, no fim do governo Bolsonaro, o Mais Médicos {tinha}. {hoje}",
           f"{onde}, o Mais Médicos {tinha} com Bolsonaro. {hoje}"]
+    abertura = f"Atenção, morador {do_bairro or 'de ' + cidade}: o Mais Médicos está ameaçado. Entenda por quê."
+    for t in [*f0, *f3, abertura]:
+        lugar_falado.confere(t)   # trava: nenhuma fala com "bairro X"
     return {
         "falas": {0: f0, 3: f3},
         "corte": CORTE_BRASIL if regra == "brasil" else FIXAS[4],
         "dado": {"rotulo": rotulo, "alcance": regra, "antes": antes, "agora": agora},
-        "morador": f"do bairro {bairro}" if bairro else f"de {cidade}",
-        # abertura antes da história (aprovada em 21/10, ideia do Gabriel: a pessoa desengajava antes de esquentar)
-        "abertura": f"Atenção, morador {'do bairro ' + bairro if bairro else 'de ' + cidade}: o Mais Médicos está ameaçado. Entenda por quê.",
+        "morador": do_bairro or f"de {cidade}",
+        "abertura": abertura,   # antes da história (aprovada em 21/10, ideia do Gabriel: a pessoa desengajava antes de esquentar)
     }
 
 
