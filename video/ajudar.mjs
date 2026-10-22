@@ -16,7 +16,7 @@ const VIDEO = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-
 const args = process.argv.slice(2);
 const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const FILA = (process.env.FILA_URL || 'https://fila-videos.boralula.workers.dev').replace(/\/$/, '');
-const TRABALHO = opc('--trabalho', process.env.TRABALHO || 'video-insulina'); // o vídeo que a campanha está produzindo agora
+const TRABALHO = opc('--trabalho', process.env.TRABALHO || 'video-saude'); // o vídeo que a campanha está produzindo agora
 const LIMITE = +opc('--limite', Infinity), LOTE = Math.min(50, +opc('--lote', 10));
 const QUEM = opc('--quem', process.env.AJUDANTE || os.hostname());
 const PROPRIAS = new Set(['--trabalho', '--limite', '--lote', '--quem']);
