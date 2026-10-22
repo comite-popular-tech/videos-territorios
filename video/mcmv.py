@@ -1,4 +1,4 @@
-"""Vídeo "A chave" (Minha Casa, Minha Vida faixa 1, roteiro 4 de video/roteiros-narracao.md), com a Dona Marta.
+"""Vídeo "Casa nova" (Minha Casa, Minha Vida faixa 1, roteiro 4 de video/roteiros-narracao.md), com a Dona Marta.
 
   python video/mcmv.py dados               # gera video/mcmv.json (vai no git)
   python video/mcmv.py pecas               # peças que não mudam (clipes do Flow, corte, compartilhe)
@@ -34,7 +34,7 @@ from pedemeia_comum import ESTADOS, VIDEO, limpa  # noqa: E402
 
 NOME = "mcmv"
 TRABALHO = "video-mcmv"
-DESCRICAO = "Vídeo vertical A chave (Minha Casa, Minha Vida faixa 1), por território"
+DESCRICAO = "Vídeo vertical Casa nova (Minha Casa, Minha Vida faixa 1), por território"
 PUB = VIDEO / "public" / "mcmv"
 SAIDA = Path(os.environ.get("MCMV_SAIDA", "E:/30000-cards/mcmv-exemplos"))
 DADOS = VIDEO / "mcmv.json"

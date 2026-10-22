@@ -1,7 +1,7 @@
 // Ajuda a produzir materiais por território: pede um lote de itens de um trabalho à fila (fila/worker.js), baixa as
 // entradas de cada item, chama o script do trabalho (video/trabalhos/<trabalho>.mjs ou .sh) e sobe o que ele deixou na
 // pasta de saída de cada item, avisando que ficou pronto. Repete até a fila esvaziar. Sem senha: só as URLs do lote.
-//   node video/ajudar.mjs [--trabalho video-saude] [--limite N] [--lote 10] [--quem nome] [outras opções: vão para o script]
+//   node video/ajudar.mjs [--trabalho video-saude,video-mcmv] [--limite N] [--lote 10] [--quem nome] [outras opções: vão para o script]
 //   FILA_URL no ambiente troca a fila (padrão: o Worker publicado). Sai com 0 quando a fila está vazia ou o limite foi
 //   atingido; 1 se nada funcionou. Normalmente se roda pelo ajudar.sh / ajudar.ps1, que preparam o ambiente.
 // Contrato do script do trabalho: `<script> <pasta-entradas> <pasta-saidas> <slug ...>`; para cada slug, as entradas
@@ -16,15 +16,17 @@ const VIDEO = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-
 const args = process.argv.slice(2);
 const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const FILA = (process.env.FILA_URL || 'https://fila-videos.boralula.workers.dev').replace(/\/$/, '');
-const TRABALHO = opc('--trabalho', process.env.TRABALHO || 'video-saude'); // o vídeo que a campanha está produzindo agora
+// um trabalho ou vários, separados por vírgula: esvaziada a fila de um, segue para o próximo (Gui, 22/10: quem ajuda
+// dispara uma vez só). Padrão: o que a campanha está produzindo agora, na ordem.
+const TRABALHOS = opc('--trabalho', process.env.TRABALHO || 'video-saude,video-mcmv,video-postonovo').split(',').map((t) => t.trim()).filter(Boolean);
 const LIMITE = +opc('--limite', Infinity), LOTE = Math.min(50, +opc('--lote', 10));
 const QUEM = opc('--quem', process.env.AJUDANTE || os.hostname());
 const PROPRIAS = new Set(['--trabalho', '--limite', '--lote', '--quem']);
 const extras = args.filter((a, i) => !PROPRIAS.has(a) && !PROPRIAS.has(args[i - 1])); // --gl, --paralelo... vão para o script
-const KIT = path.join(VIDEO, 'kit', TRABALHO); // entradas/<slug>/ e saidas/<slug>/ (pequeno: o pesado fica onde o script gravar)
-if (!/^[a-z0-9-]+$/.test(TRABALHO)) { console.error('nome de trabalho inválido'); process.exit(1); }
-const script = ['.mjs', '.sh'].map((e) => path.join(VIDEO, 'trabalhos', TRABALHO + e)).find((p) => fs.existsSync(p));
-if (!script) { console.error(`não existe video/trabalhos/${TRABALHO}.mjs nem .sh`); process.exit(1); }
+for (const t of TRABALHOS) {
+  if (!/^[a-z0-9-]+$/.test(t)) { console.error(`nome de trabalho inválido: ${t}`); process.exit(1); }
+  if (!['.mjs', '.sh'].some((e) => fs.existsSync(path.join(VIDEO, 'trabalhos', t + e)))) { console.error(`não existe video/trabalhos/${t}.mjs nem .sh`); process.exit(1); }
+}
 
 const dormir = (ms) => new Promise((ok) => setTimeout(ok, ms));
 // tenta de novo em erro de rede, 429 e 5xx, com espera crescente (2 s, 4 s, ... até 1 min); o pedido de lote tenta mais
@@ -50,12 +52,15 @@ async function baixar(url, destino) {
 
 let feitos = 0, falhas = 0;
 if (process.env.GITHUB_ACTIONS) await dormir(Math.random() * 30000); // espalha a largada das máquinas do Actions
+for (const TRABALHO of TRABALHOS) {
+const KIT = path.join(VIDEO, 'kit', TRABALHO); // entradas/<slug>/ e saidas/<slug>/ (pequeno: o pesado fica onde o script gravar)
+const script = ['.mjs', '.sh'].map((e) => path.join(VIDEO, 'trabalhos', TRABALHO + e)).find((p) => fs.existsSync(p));
 while (feitos + falhas < LIMITE) {
   const quantidade = Math.min(LOTE, LIMITE - feitos - falhas);
   const r = await pedir(`${FILA}/lote/${TRABALHO}`, 'POST', JSON.stringify({ quantidade, quem: QUEM }), 'application/json', 8);
   if (!r.ok) { console.error(`a fila respondeu ${r.status}: ${await r.text()}`); process.exit(1); }
   const lote = await r.json();
-  if (!lote.itens.length) { console.log(`fila vazia (${TRABALHO}). Esta rodada: ${feitos} prontos, ${falhas} falhas. Progresso: ${FILA}/`); process.exit(feitos || !falhas ? 0 : 1); }
+  if (!lote.itens.length) { console.log(`fila vazia (${TRABALHO}). Esta rodada: ${feitos} prontos, ${falhas} falhas. Progresso: ${FILA}/`); break; }
   console.log(`lote ${lote.lote} (${TRABALHO} v${lote.versao}): ${lote.itens.length} itens (${lote.itens.map((t) => t.rotulo ?? t.slug).slice(0, 4).join(', ')}${lote.itens.length > 4 ? ', ...' : ''})`);
 
   // entradas de cada item
@@ -112,5 +117,7 @@ while (feitos + falhas < LIMITE) {
   }
   console.log(`lote ${lote.lote}: ${prontos.length} em ${((Date.now() - t0) / 60000).toFixed(1)} min; total desta rodada: ${feitos} prontos, ${falhas} falhas`);
 }
-console.log(`limite de ${LIMITE} atingido: ${feitos} prontos, ${falhas} falhas. Progresso: ${FILA}/`);
-process.exit(feitos ? 0 : 1);
+}
+if (feitos + falhas >= LIMITE) console.log(`limite de ${LIMITE} atingido: ${feitos} prontos, ${falhas} falhas. Progresso: ${FILA}/`);
+else console.log(`todas as filas vazias (${TRABALHOS.join(', ')}): ${feitos} prontos, ${falhas} falhas. Obrigado!`);
+process.exit(feitos || !falhas ? 0 : 1);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Trabalho "video-mcmv" da fila (A chave (Minha Casa, Minha Vida)): montagem em Python (historia_dados.py), cena do dado no Remotion.
+# Trabalho "video-mcmv" da fila (Casa nova (Minha Casa, Minha Vida)): montagem em Python (historia_dados.py), cena do dado no Remotion.
 #   bash video/trabalhos/video-mcmv.sh <pasta-entradas> <pasta-saidas> <slug ...>
 # Usa o primeiro Python que tiver edge-tts (no Windows o python3 do PATH às vezes é outro).
 set -euo pipefail

@@ -1,4 +1,4 @@
-"""Trabalho "video-mcmv" da fila: A chave (Minha Casa, Minha Vida) por território.
+"""Trabalho "video-mcmv" da fila: Casa nova (Minha Casa, Minha Vida) por território.
   python video/trabalhos/video_mcmv.py <pasta-entradas> <pasta-saidas> <slug ...>
   (pela fila: video/trabalhos/video-mcmv.sh, chamado pelo ajudar.mjs)
 

@@ -1,4 +1,4 @@
-// Cenas de infográfico dos vídeos de história com a Dona Marta ("A chave", Minha Casa Minha Vida; "O posto novo", UBS),
+// Cenas de infográfico dos vídeos de história com a Dona Marta ("Casa nova", Minha Casa Minha Vida; "O posto novo", UBS),
 // irmãs das do InfoMaisMedicos.tsx (antes no HyperFrames, em video/historia-dados/):
 // 'hd_dado' (foto da cidade inteira com o alfinete, depois o cartão claro sobe com duas colunas, o governo Bolsonaro em
 // cinza e o governo Lula em verde; até 30, um ícone por unidade, casa ou posto, acima disso barras) e 'hd_corte' (o
