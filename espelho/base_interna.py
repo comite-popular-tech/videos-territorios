@@ -13,7 +13,8 @@ Mesma árvore da "CPL · Material por município" do Vinicius:
   Região / UF / Região intermediária (IBGE 2017, regioes_ibge.json) / Município / Tema / Vídeo / arquivo
 
 Material (--so, padrão todos):
-  insulina   "A insulina do Seu Raimundo" (Farmácia Popular), R2 da fila: video-insulina/<slug>/insulina.mp4
+  insulina      "A insulina do Seu Raimundo" (Farmácia Popular), R2 da fila: video-insulina/<slug>/insulina.mp4
+  maismedicos   "A doutora do posto" (Mais Médicos), R2 da fila: video-maismedicos/<slug>/maismedicos.mp4
 
 Pula o que já existe (pelo nome). Os vídeos vão do Worker fila-videos direto para o Drive (rclone copyurl).
 O transporte (rclone rcd) é o mesmo do espelho_drive.py.
@@ -40,6 +41,7 @@ REGIOES = json.loads((Path(__file__).resolve().parent / "regioes_ibge.json").rea
 # material -> (pasta do tema, nome do arquivo, chave no R2)
 MATERIAIS = {
     "insulina": ("2_Saúde/Vídeo", "Farmácia Popular", "video-insulina/{slug}/insulina.mp4"),
+    "maismedicos": ("2_Saúde/Vídeo", "Mais Médicos", "video-maismedicos/{slug}/maismedicos.mp4"),
 }
 
 
@@ -90,10 +92,13 @@ def executar(cid, rc, so, simular):
     return len(passos)
 
 
-def atalhos(cid, rc, simular):
-    """Atalho em Conteúdo por cidade/<UF>/<Cidade>/Vídeo/ para cada <tema>/Vídeo/<arquivo> da cidade na base."""
+def atalhos(cid, rc, simular, so=tuple(MATERIAIS)):
+    """Atalho em Conteúdo por cidade/<UF>/<Cidade>/Vídeo/ para cada <tema>/Vídeo/<arquivo> da cidade na base, só dos
+    materiais pedidos (--so)."""
     base, pasta = base_da_cidade(cid), f"{CIDADES}/{cid[2]}/{cid[1]}/Vídeo"
-    videos = [i["Path"] for i in rc.listar(base) if not i["IsDir"] and i["Path"].rsplit("/", 2)[-2] == "Vídeo"]
+    nomes = tuple(MATERIAIS[m][1] for m in so)
+    videos = [i["Path"] for i in rc.listar(base) if not i["IsDir"] and i["Path"].rsplit("/", 2)[-2] == "Vídeo"
+              and i["Path"].rsplit("/", 1)[1].startswith(nomes)]
     if not videos:
         return 0
     lista = rc.listar(pasta, recursivo=False)
@@ -147,7 +152,7 @@ def main():
     erros, t0 = [], time.time()
     try:
         with ThreadPoolExecutor(a.jobs) as ex:
-            futuros = {(ex.submit(atalhos, c, rc, a.simular) if a.atalhos else ex.submit(executar, c, rc, so, a.simular)): c
+            futuros = {(ex.submit(atalhos, c, rc, a.simular, so) if a.atalhos else ex.submit(executar, c, rc, so, a.simular)): c
                        for c in cidades}
             for n, f in enumerate(as_completed(futuros), 1):
                 c = futuros[f]

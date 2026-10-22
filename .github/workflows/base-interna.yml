@@ -10,7 +10,7 @@ on:
         description: "UFs separadas por espaço (vazio = todas)"
         default: ""
       so:
-        description: "materiais (vazio = todos): insulina"
+        description: "materiais (vazio = todos): insulina, maismedicos"
         default: ""
       paralelo:
         description: "quantos jobs ao mesmo tempo"
