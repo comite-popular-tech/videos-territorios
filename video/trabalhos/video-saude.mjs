@@ -32,6 +32,10 @@ for (const slug of slugs) {
       FOTOS[cs] = d.foto;
       fs.mkdirSync(path.join(DADOS, 'dados/brutos/fotos_cidades'), { recursive: true });
       fs.copyFileSync(fundo, path.join(DADOS, 'dados/brutos/fotos_cidades', `${cs}.jpg`));
+    } else if (d.fundo === 'satelite') {
+      delete FOTOS[cs];
+      fs.mkdirSync(path.join(DADOS, 'dados/brutos/satelites'), { recursive: true });
+      fs.copyFileSync(fundo, path.join(DADOS, 'dados/brutos/satelites', `${cs}.jpg`)); // o cidade.mjs usa e põe o crédito
     } else {
       delete FOTOS[cs];
       fs.mkdirSync(path.join(VIDEO, 'mapas'), { recursive: true });

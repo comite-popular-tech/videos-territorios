@@ -76,7 +76,7 @@ for (let i = 0; i < semFoto.length; i += 400) // em partes, para a linha de coma
 
 // ---------------------------------------------------------------- servidor local (fotos, mapas, vozes)
 const TIPOS = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.svg': 'image/svg+xml', '.mp3': 'audio/mpeg', '.wav': 'audio/wav' };
-const LIBERADOS = [`${dadosRel()}dados/brutos/fotos_cidades/`, 'video/mapas/', 'video/vozes/'];
+const LIBERADOS = [`${dadosRel()}dados/brutos/fotos_cidades/`, `${dadosRel()}dados/brutos/satelites/`, 'video/mapas/', 'video/vozes/'];
 const servidor = http.createServer((req, res) => {
   const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '');
   const arq = path.join(RAIZ, rel);
