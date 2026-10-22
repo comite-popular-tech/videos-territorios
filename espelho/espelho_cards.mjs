@@ -14,7 +14,7 @@ const site = process.env.ACERVO_URL || 'https://cards.boralula.org';
 const navegador = await chromium.launch();
 try {
   const pagina = await navegador.newPage({ acceptDownloads: true });
-  await pagina.goto(`${site}/#${slug}/cards/preto`);
+  await pagina.goto(`${site}/#${slug}/cards-zip`);   // a tela dos estilos (acervo.py, desde o pop-up de 22/10)
   await pagina.locator('#todos12').waitFor({ timeout: 60000 });
   await pagina.waitForLoadState('networkidle');      // a foto da votação chega depois da tela
   const [download] = await Promise.all([pagina.waitForEvent('download', { timeout: 120000 }), pagina.click('#todos12')]);
