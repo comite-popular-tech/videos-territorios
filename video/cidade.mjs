@@ -10,6 +10,8 @@ export const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.
 // VIDEO_DADOS=video/exemplo (lote.mjs --exemplo), o kit pequeno que vai no git para quem quer testar sem os brutos.
 export const dadosRel = () => (process.env.VIDEO_DADOS ? process.env.VIDEO_DADOS.replace(/\/?$/, '/') : '');
 const D = (p) => path.join(RAIZ, dadosRel(), p);
+// crédito do fundo de satélite (cidade sem foto; video/fundo_satelite.py no repositório privado): a Esri pede na imagem
+export const CREDITO_SATELITE = 'Imagem de satélite: Esri, Vantor, Earthstar Geographics e GIS User Community';
 const ler = (p) => JSON.parse(fs.readFileSync(D(p), 'utf8'));
 let FOTOS, FALADOS;
 
@@ -70,10 +72,13 @@ export function dadosCidade(slug) {
   const temFoto = f && f.url && ['revisada', 'enviada'].includes(f.status) && fs.existsSync(D(`dados/brutos/fotos_cidades/${cs}.jpg`));
   // o mapa pode vir do SVG dos brutos (o lote rasteriza) ou já em JPEG em video/mapas/ (kit da fila, ajudar.mjs)
   const temMapa = fs.existsSync(D(`dados/brutos/artes_mapa/${cs}-saude.svg`)) || fs.existsSync(path.join(RAIZ, 'video/mapas', `${cs}.jpg`));
-  if (!temFoto && !temMapa) return { slug, erro: 'sem foto aprovada e sem mapa' };
-  const fundo = temFoto ? 'foto' : 'mapa';
+  // sem foto: a imagem de satélite da sede (kit da fila, desde 21/10) e, sem ela, o mapa
+  const temSatelite = !temFoto && fs.existsSync(D(`dados/brutos/satelites/${cs}.jpg`));
+  if (!temFoto && !temSatelite && !temMapa) return { slug, erro: 'sem foto aprovada, sem satélite e sem mapa' };
+  const fundo = temFoto ? 'foto' : temSatelite ? 'satelite' : 'mapa';
   // mapa: JPEG feito pelo video/mapas.mjs a partir do SVG (o lote roda antes de renderizar)
-  const arquivoFundo = temFoto ? `${dadosRel()}dados/brutos/fotos_cidades/${cs}.jpg` : `video/mapas/${cs}.jpg`;
+  const arquivoFundo = temFoto ? `${dadosRel()}dados/brutos/fotos_cidades/${cs}.jpg`
+    : temSatelite ? `${dadosRel()}dados/brutos/satelites/${cs}.jpg` : `video/mapas/${cs}.jpg`;
 
   const cidade = limpa(ped.municipio.municipio);
   const Art = artigo === 'o' ? 'O' : 'A';
@@ -100,7 +105,7 @@ export function dadosCidade(slug) {
     manchete: limpa(p1.data.manchete).split('\n'), // "AMA Capão Redondo / em risco", como no card
     foto: arquivoFundo, // o lote troca pelo endereço do servidor local
     fundo,
-    fotoCredito: temFoto ? credito(f) : 'Mapa: malha municipal do IBGE',
+    fotoCredito: temFoto ? credito(f) : temSatelite ? CREDITO_SATELITE : 'Mapa: malha municipal do IBGE',
     valorAno: aps,
     ubs,
     artigo,

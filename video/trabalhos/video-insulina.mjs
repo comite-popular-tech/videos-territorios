@@ -90,7 +90,7 @@ for (const slug of slugs) {
     const d = JSON.parse(fs.readFileSync(path.join(ENT, slug, `${slug}.json`), 'utf8'));
     const fundo = path.join(ENT, slug, `${slug.split('--')[0]}.jpg`);
     if (!fs.existsSync(fundo)) throw new Error('sem o fundo');
-    itens.push({ slug, fundo, ...roteiro(d, slug) });
+    itens.push({ slug, fundo, credito: d.fundo === 'satelite' ? d.credito : '', ...roteiro(d, slug) }); // satélite: crédito na tela
   } catch (e) {
     console.log(`  ${slug}: entradas incompletas (${e.message})`);
   }
@@ -141,7 +141,7 @@ for (const it of itens) {
   const tmp = (n) => path.join(TMP, `${it.slug}-${n}`);
   try {
     // cena 4: a única desenhada por território (uns 7 s), sem legenda, depois acelerada
-    const props = { cenas: [{ dur: DUR[3], legenda: [], info: { tipo: 'dado', ...it.dado, fundo: `${BASE}/${it.slug}/${path.basename(it.fundo)}`, fonte: FONTE_DADO } }], trilha: '', entraPrimeira: true };
+    const props = { cenas: [{ dur: DUR[3], legenda: [], info: { tipo: 'dado', ...it.dado, fundo: `${BASE}/${it.slug}/${path.basename(it.fundo)}`, fonte: it.credito ? `${FONTE_DADO} · ${it.credito}` : FONTE_DADO } }], trilha: '', entraPrimeira: true };
     const composition = await selectComposition({ serveUrl, id: 'Historia', inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
     await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: tmp('bruto4.mp4'), inputProps: props, concurrency: CONC, scale: C.ESCALA, x264Preset: 'veryfast', crf: 16, imageFormat: 'jpeg', puppeteerInstance: browser, logLevel: 'error', timeoutInMilliseconds: 120000 });
     // legendas das cenas variáveis (tempos relativos ao começo de cada peça, já no tempo final)

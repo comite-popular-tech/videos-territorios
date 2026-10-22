@@ -22,7 +22,7 @@ export type SaudeProps = {
   cidade: string;
   uf: string;
   foto: string; // URL (http) ou arquivo em public/: foto da cidade ou mapa do município
-  fundo?: 'foto' | 'mapa';
+  fundo?: 'foto' | 'mapa' | 'satelite'; // satélite: 1080x1920 como a foto, e entra igual a ela
   fotoCredito: string;
   valorAno: number; // repasse federal da atenção primária, R$/ano
   ubs: number;

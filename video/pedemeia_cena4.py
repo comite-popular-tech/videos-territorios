@@ -291,12 +291,14 @@ def quadro(args):
     return im.convert("RGB").tobytes()
 
 
-def desenhar(foto_arq, dado: dict, dur: int, saida, ass_arq=None, proc: int = 4) -> None:
-    """Grava a cena no tempo final (1,25x), com a legenda e os parâmetros de codificação das outras peças."""
+def desenhar(foto_arq, dado: dict, dur: int, saida, ass_arq=None, proc: int = 4, credito: str = None) -> None:
+    """Grava a cena no tempo final (1,25x), com a legenda e os parâmetros de codificação das outras peças. credito: o do
+    fundo de satélite, que vai na linha da fonte."""
     filtros = [f"setpts=PTS/{C.VEL}", f"fps={FPS}"] + ([C.filtro_ass(ass_arq)] if ass_arq else [])
     ff = subprocess.Popen([C.FFMPEG, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{W}x{H}", "-r", str(FPS),
                            "-i", "-", "-vf", ",".join(filtros), *C.ENC, str(saida)], stdin=subprocess.PIPE)
-    tarefas = [(f, dur, dado["local"], dado["estudantes"], dado["valor12m"], dado["ano"], C.FONTE_DADO) for f in range(dur)]
+    fonte_txt = C.FONTE_DADO + (f" · {credito}" if credito else "")
+    tarefas = [(f, dur, dado["local"], dado["estudantes"], dado["valor12m"], dado["ano"], fonte_txt) for f in range(dur)]
     with Pool(proc, initializer=preparar, initargs=(str(foto_arq),)) as pool:
         for b in pool.imap(quadro, tarefas, chunksize=4):
             ff.stdin.write(b)

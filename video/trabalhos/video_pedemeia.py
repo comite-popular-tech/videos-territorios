@@ -72,7 +72,9 @@ def montar(it: dict, dur: list, total: float, proc: int) -> None:
             pecas.append(tmp("p1.mp4"))
             continue
         # portão (fala sem a cidade) e dado da cidade: iguais entre territórios que têm o mesmo texto e o mesmo dado
-        k = chave(i, it["texto"][i], it["extra"][i], it["dado"] if i == 3 else None, it["fundo"].name if i == 3 else None, dur[i])
+        # o crédito separa o mapa antigo do satélite que ficou no lugar dele (o arquivo tem o mesmo nome)
+        k = chave(i, it["texto"][i], it["extra"][i], it["dado"] if i == 3 else None, it["fundo"].name if i == 3 else None,
+                  it["credito"] if i == 3 else None, dur[i])
         pronto = CACHE / f"cena{i + 1}-{k}.mp4"
         if not pronto.exists():
             ass_arq = tmp(f"{i + 1}.ass")
@@ -81,7 +83,7 @@ def montar(it: dict, dur: list, total: float, proc: int) -> None:
             if i == 1:
                 C.ffmpeg("-i", COMUM / "pecas/peca2.mp4", "-vf", C.filtro_ass(ass_arq), *C.ENC, parcial)
             else:
-                pedemeia_cena4.desenhar(it["fundo"], it["dado"], dur[3], parcial, ass_arq, proc)
+                pedemeia_cena4.desenhar(it["fundo"], it["dado"], dur[3], parcial, ass_arq, proc, credito=it["credito"])
             os.replace(parcial, pronto)
         pecas.append(pronto)
     # cola as seis peças sem recodificar
@@ -142,7 +144,9 @@ def main() -> int:
             fundo = ent / slug / f"{slug.split('--')[0]}.jpg"
             if not fundo.exists():
                 raise FileNotFoundError("sem o fundo")
-            itens.append({"slug": slug, "fundo": fundo, "saida": sai / slug / "pedemeia.mp4", **C.roteiro(d["pedidos"], slug, pdm, escolas)})
+            credito = d.get("credito") if d.get("fundo") == "satelite" else None  # satélite: crédito na tela (kit_fundos.py)
+            itens.append({"slug": slug, "fundo": fundo, "saida": sai / slug / "pedemeia.mp4", "credito": credito,
+                          **C.roteiro(d["pedidos"], slug, pdm, escolas)})
         except Exception as e:  # noqa: BLE001
             print(f"  {slug}: entradas incompletas ({e})")
     if not itens:
