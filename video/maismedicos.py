@@ -161,11 +161,13 @@ def _estilos(ass_txt: str, linhas: list) -> str:
 def abertura(it: dict, saida: Path, pecas_dir: Path) -> float:
     """Abertura com voz sobre o primeiro quadro do clipe 1 escurecido. O cartão (ATENÇÃO, MORADOR DE <CIDADE>, O MAIS
     MÉDICOS ESTÁ AMEAÇADO) já está inteiro no 1º quadro, que é a prévia do WhatsApp (Gui, 21/10: a cidade, não o
-    bairro, em toda prévia); só o "Entenda por quê" entra com a fala. Devolve a duração em segundos (tempo final)."""
+    bairro, em toda prévia). Do 2º quadro em diante as partes entram de novo com a fala, e o "Entenda por quê" por
+    último. Devolve a duração em segundos (tempo final)."""
     leg = C.legenda_de(it["abertura"], VOZES)
     dur = round((0.15 + C.fim_da_fala(leg) / C.VEL + 0.45) * C.FPS) / C.FPS
     quando = lambda alvo, resto: 0.15 + next((t for t, _d, p in leg if p.lower().startswith(alvo)), C.fim_da_fala(leg) * resto) / C.VEL
-    t_entenda = quando("entenda", 0.8)
+    t_selo, t_entenda = quando("mais", 0.5), quando("entenda", 0.8)
+    q1 = 0.03   # o 1º quadro (1/30 s; o ASS conta em centésimos)
     quadro = saida.with_suffix(".jpg")
     C.ffmpeg("-i", pecas_dir / "peca1.mp4", "-frames:v", "1", "-q:v", "2", quadro)
     morador = f"MORADOR {it['morador']}".upper()
@@ -178,9 +180,14 @@ def abertura(it: dict, saida: Path, pecas_dir: Path) -> float:
     ])
     fim = _tempo(dur)
     ev = [
-        f"Dialogue: 1,{_tempo(0)},{fim},Grande,,0,0,0,,{{\\pos(360,470)}}ATENÇÃO",
-        f"Dialogue: 1,{_tempo(0)},{fim},Morador,,0,0,0,,{{\\pos(360,615)}}{morador}",
-        f"Dialogue: 1,{_tempo(0)},{fim},Selo,,0,0,0,,{{\\pos(360,765)\\frz3}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
+        # 1º quadro (a prévia): o cartão inteiro, parado
+        f"Dialogue: 1,{_tempo(0)},{_tempo(q1)},Grande,,0,0,0,,{{\\pos(360,470)}}ATENÇÃO",
+        f"Dialogue: 1,{_tempo(0)},{_tempo(q1)},Morador,,0,0,0,,{{\\pos(360,615)}}{morador}",
+        f"Dialogue: 1,{_tempo(0)},{_tempo(q1)},Selo,,0,0,0,,{{\\pos(360,765)\\frz3}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
+        # quem dá o play vê as partes entrando com a fala
+        f"Dialogue: 1,{_tempo(q1 + 0.05)},{fim},Grande,,0,0,0,,{{\\pos(360,470)\\fscx160\\fscy160\\t(0,180,\\fscx100\\fscy100)}}ATENÇÃO",
+        f"Dialogue: 1,{_tempo(0.45)},{fim},Morador,,0,0,0,,{{\\pos(360,615)\\fad(150,0)}}{morador}",
+        f"Dialogue: 1,{_tempo(t_selo)},{fim},Selo,,0,0,0,,{{\\pos(360,765)\\frz3\\fscx140\\fscy140\\t(0,150,\\fscx100\\fscy100)}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
         f"Dialogue: 1,{_tempo(t_entenda)},{fim},Entenda,,0,0,0,,{{\\pos(360,900)\\fscx130\\fscy130\\t(0,160,\\fscx100\\fscy100)}}ENTENDA POR QUÊ",
     ]
     ass_arq = saida.with_suffix(".ass")
