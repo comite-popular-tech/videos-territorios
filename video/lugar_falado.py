@@ -88,6 +88,17 @@ def do_lugar(bairro: str):
     return {"no": "do", "na": "da", "nos": "dos", "nas": "das", "em": "de"}[prep] + " " + resto
 
 
+# cidades que o povo diz com artigo ("morador do Rio de Janeiro"); o resto vai com "de"
+CIDADE_COM_ARTIGO = {"Rio de Janeiro": "o", "Recife": "o", "Crato": "o", "Cabo de Santo Agostinho": "o", "Guarujá": "o",
+                     "Rio Grande": "o", "Gama": "o", "Lapa": "a"}
+
+
+def de_cidade(cidade: str) -> str:
+    """'de São Paulo', 'do Rio de Janeiro'."""
+    art = CIDADE_COM_ARTIGO.get(cidade)
+    return f"{'do' if art == 'o' else 'da'} {cidade}" if art else f"de {cidade}"
+
+
 def confere(texto: str) -> str:
     """Trava: a fala não pode ter "bairro X" (nem "no bairro", "do bairro", "o bairro"). Devolve o texto."""
     if re.search(r"\bbairro\s+[A-ZÀ-Ý]", texto):

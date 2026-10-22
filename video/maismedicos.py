@@ -159,12 +159,13 @@ def _estilos(ass_txt: str, linhas: list) -> str:
 
 
 def abertura(it: dict, saida: Path, pecas_dir: Path) -> float:
-    """Abertura com voz: o primeiro quadro do clipe 1 (limpo no 1º quadro, a prévia do WhatsApp) escurece e entram
-    ATENÇÃO, o morador, o selo vermelho e o "Entenda por quê". Devolve a duração em segundos (tempo final)."""
+    """Abertura com voz sobre o primeiro quadro do clipe 1 escurecido. O cartão (ATENÇÃO, MORADOR DE <CIDADE>, O MAIS
+    MÉDICOS ESTÁ AMEAÇADO) já está inteiro no 1º quadro, que é a prévia do WhatsApp (Gui, 21/10: a cidade, não o
+    bairro, em toda prévia); só o "Entenda por quê" entra com a fala. Devolve a duração em segundos (tempo final)."""
     leg = C.legenda_de(it["abertura"], VOZES)
     dur = round((0.15 + C.fim_da_fala(leg) / C.VEL + 0.45) * C.FPS) / C.FPS
     quando = lambda alvo, resto: 0.15 + next((t for t, _d, p in leg if p.lower().startswith(alvo)), C.fim_da_fala(leg) * resto) / C.VEL
-    t_selo, t_entenda = quando("mais", 0.5), quando("entenda", 0.8)
+    t_entenda = quando("entenda", 0.8)
     quadro = saida.with_suffix(".jpg")
     C.ffmpeg("-i", pecas_dir / "peca1.mp4", "-frames:v", "1", "-q:v", "2", quadro)
     morador = f"MORADOR {it['morador']}".upper()
@@ -177,17 +178,17 @@ def abertura(it: dict, saida: Path, pecas_dir: Path) -> float:
     ])
     fim = _tempo(dur)
     ev = [
-        f"Dialogue: 1,{_tempo(0.12)},{fim},Grande,,0,0,0,,{{\\pos(360,470)\\fscx160\\fscy160\\t(0,180,\\fscx100\\fscy100)}}ATENÇÃO",
-        f"Dialogue: 1,{_tempo(0.45)},{fim},Morador,,0,0,0,,{{\\pos(360,615)\\fad(150,0)}}{morador}",
-        f"Dialogue: 1,{_tempo(t_selo)},{fim},Selo,,0,0,0,,{{\\pos(360,765)\\frz3\\fad(80,0)}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
+        f"Dialogue: 1,{_tempo(0)},{fim},Grande,,0,0,0,,{{\\pos(360,470)}}ATENÇÃO",
+        f"Dialogue: 1,{_tempo(0)},{fim},Morador,,0,0,0,,{{\\pos(360,615)}}{morador}",
+        f"Dialogue: 1,{_tempo(0)},{fim},Selo,,0,0,0,,{{\\pos(360,765)\\frz3}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
         f"Dialogue: 1,{_tempo(t_entenda)},{fim},Entenda,,0,0,0,,{{\\pos(360,900)\\fscx130\\fscy130\\t(0,160,\\fscx100\\fscy100)}}ENTENDA POR QUÊ",
     ]
     ass_arq = saida.with_suffix(".ass")
     ass_arq.write_text(cab + "\n".join(ev) + "\n", encoding="utf-8")
     n = round(dur * C.FPS)
     filtro = (f"[0:v]scale={C.LARG}:{C.ALT},setsar=1,zoompan=z='1+0.0008*on':d={n}:s={C.LARG}x{C.ALT}:fps={C.FPS}[f];"
-              f"color=c=black:s={C.LARG}x{C.ALT}:r={C.FPS}:d={dur:.3f},format=rgba,colorchannelmixer=aa=0.62,"
-              f"fade=t=in:st=0.05:d=0.25:alpha=1[v];[f][v]overlay=format=auto:shortest=1,{C.filtro_ass(ass_arq)},"
+              f"color=c=black:s={C.LARG}x{C.ALT}:r={C.FPS}:d={dur:.3f},format=rgba,colorchannelmixer=aa=0.62[v];"
+              f"[f][v]overlay=format=auto:shortest=1,{C.filtro_ass(ass_arq)},"
               "scale=out_range=tv,format=yuv420p")   # a foto vem em faixa cheia (yuvj): igual às peças, que são coladas sem recodificar
     C.ffmpeg("-i", quadro, "-filter_complex", filtro, "-frames:v", str(n), *C.ENC, saida)
     return dur

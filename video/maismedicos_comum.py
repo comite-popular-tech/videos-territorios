@@ -94,7 +94,7 @@ def roteiro(ped: dict, mm: dict) -> dict:
         "falas": {0: f0, 3: f3},
         "corte": CORTE_BRASIL if regra == "brasil" else FIXAS[4],
         "dado": {"rotulo": rotulo, "alcance": regra, "antes": antes, "agora": agora},
-        "morador": do_bairro or f"de {cidade}",
+        "morador": lugar_falado.de_cidade(cidade),   # o cartão da abertura (a prévia do WhatsApp) traz a cidade, não o bairro (Gui, 21/10)
         "abertura": abertura,   # antes da história (aprovada em 21/10, ideia do Gabriel: a pessoa desengajava antes de esquentar)
     }
 
