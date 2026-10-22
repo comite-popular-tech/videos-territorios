@@ -8,6 +8,9 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 
+// Os outros temas (video-escola.mjs, video-aposentados.mjs) só trocam o VIDEO_TEMA e importam este arquivo.
+const TEMA = process.env.VIDEO_TEMA || 'saude';
+
 const VIDEO = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
 const RAIZ = path.resolve(VIDEO, '..');
 const [ENT, SAI, ...resto] = process.argv.slice(2);
@@ -16,7 +19,7 @@ const opcoes = resto.filter((a) => !slugs.includes(a));
 if (!ENT || !SAI || !slugs.length) { console.error('uso: video-saude.mjs <entradas> <saidas> <slug ...>'); process.exit(1); }
 
 // pasta de dados no desenho do exemplo/: saida/territorios/<slug>/pedidos.json, dados/fotos_cidades.json, dados/brutos/fotos_cidades/<cidade>.jpg
-const DADOS = path.join(VIDEO, 'kit', 'video-saude', 'dados');
+const DADOS = path.join(VIDEO, 'kit', `video-${TEMA}`, 'dados');
 const dadosRel = path.relative(RAIZ, DADOS).split(path.sep).join('/');
 const fotosJson = path.join(DADOS, 'dados/fotos_cidades.json');
 const FOTOS = fs.existsSync(fotosJson) ? JSON.parse(fs.readFileSync(fotosJson, 'utf8')) : {};
@@ -50,13 +53,13 @@ fs.mkdirSync(path.dirname(fotosJson), { recursive: true });
 fs.writeFileSync(fotosJson, JSON.stringify(FOTOS));
 if (!prontos.length) process.exit(1);
 
-const r = spawnSync(process.execPath, [path.join(VIDEO, 'lote.mjs'), ...prontos, '--dados', dadosRel, ...opcoes], { cwd: VIDEO, stdio: 'inherit' });
+const r = spawnSync(process.execPath, [path.join(VIDEO, 'lote.mjs'), ...prontos, '--dados', dadosRel, '--tema', TEMA, ...opcoes], { cwd: VIDEO, stdio: 'inherit' });
 let ok = 0;
 for (const slug of prontos) {
-  const mp4 = path.join(RAIZ, 'saida/territorios', slug, 'video/saude.mp4');
+  const mp4 = path.join(RAIZ, 'saida/territorios', slug, `video/${TEMA}.mp4`);
   if (!fs.existsSync(mp4)) continue;
   fs.mkdirSync(path.join(SAI, slug), { recursive: true });
-  fs.copyFileSync(mp4, path.join(SAI, slug, 'saude.mp4'));
+  fs.copyFileSync(mp4, path.join(SAI, slug, `${TEMA}.mp4`));
   ok++;
 }
 process.exit(ok === slugs.length && r.status === 0 ? 0 : 1);

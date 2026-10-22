@@ -28,7 +28,7 @@ on:
       trabalho:
         description: 'Trabalhos da fila, na ordem, separados por vírgula (esvaziou um, segue o próximo)'
         type: string
-        default: video-saude,video-mcmv,video-postonovo
+        default: video-saude,video-mcmv,video-postonovo,video-aposentados
       fila_url:
         description: 'URL do Worker da fila'
         type: string

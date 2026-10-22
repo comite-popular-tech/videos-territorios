@@ -4,6 +4,7 @@
 //   node lote.mjs --todas [--fundo foto|mapa] [--limite 50] [--amostra 50]
 //   node lote.mjs --exemplo --todas                   os 4 territórios do kit em video/exemplo/ (sem os brutos)
 //   node lote.mjs --dados video/kit <slug ...>         outra pasta de dados (mesmo desenho do exemplo/; é o que o ajudar.mjs usa)
+//   --tema escola|aposentados   outro vídeo do acervo (padrão: saude); saída <tema>.mp4 na mesma pasta
 //   opções: --paralelo 1 (cidades ao mesmo tempo)  --conc 8 (abas por cidade)  --720  --pular N  --voz antonio|francisca|thalita
 //           --gl angle (placa de vídeo; swangle = só CPU, para máquina sem placa ou GitHub Actions)
 //           --sem-voz  --refazer  --frames (5 PNG de conferência por cidade)
@@ -17,6 +18,7 @@ import { execFileSync, spawn } from 'child_process';
 import { bundle } from '@remotion/bundler';
 import { openBrowser, renderMedia, renderStill, selectComposition } from '@remotion/renderer';
 import { RAIZ, dadosCidade, dadosRel } from './cidade.mjs';
+import { dadosAposentados, dadosEscola } from './temas.mjs';
 
 const args = process.argv.slice(2);
 const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
@@ -28,7 +30,15 @@ const voz = VOZES[opc('--voz', 'antonio')];
 const PARALELO = +opc('--paralelo', 1), CONC = Math.min(+opc('--conc', 8), os.cpus().length); // o Remotion recusa mais abas que núcleos
 const ESCALA = flag('--720') ? 2 / 3 : 1; // 720x1280: ~40% mais rápido
 const FPS = 30, ATRASO_VOZ = 8, FOLGA = 14, MINIMO = [75, 150, 120, 120, 120], FECHO_EXTRA = 30;
-const VALOR = new Set(['--fundo', '--limite', '--amostra', '--paralelo', '--conc', '--voz', '--pular', '--dados', '--gl']);
+const VALOR = new Set(['--tema', '--fundo', '--limite', '--amostra', '--paralelo', '--conc', '--voz', '--pular', '--dados', '--gl']);
+// --tema saude (padrão) | escola | aposentados: dados, composição (src/Root.tsx), nome do MP4 e cenas dos PNGs de conferência
+const TEMAS = {
+  saude: { dados: dadosCidade, comp: 'Saude', arq: 'saude', voz: '', cenas: ['abertura', 'numero', 'farmacia', 'corte', 'fecho'] },
+  escola: { dados: dadosEscola, comp: 'Escola', arq: 'escola', voz: 'escola-', cenas: ['abertura', 'numero', 'merenda', 'corte', 'fecho'] },
+  aposentados: { dados: dadosAposentados, comp: 'Aposentados', arq: 'aposentados', voz: 'aposentados-', cenas: ['abertura', 'numero', 'minimo', 'corte', 'fecho'] },
+};
+const TEMA = TEMAS[opc('--tema', 'saude')];
+if (!TEMA) { console.error(`tema desconhecido: ${opc('--tema')}`); process.exit(1); }
 const DIR_VOZ = path.join(RAIZ, 'video', 'vozes', 'territorios'); // separado das vozes do vídeo por cidade (saida/brasil)
 const REL = path.join(RAIZ, 'video', 'lote-relatorio.csv');
 
@@ -37,7 +47,7 @@ let slugs = args.filter((a, i) => !a.startsWith('--') && !VALOR.has(args[i - 1])
 const TERR = path.join(RAIZ, dadosRel(), 'saida/territorios');
 if (flag('--todas')) slugs = fs.readdirSync(TERR).filter((s) => fs.existsSync(path.join(TERR, s, 'pedidos.json'))).sort();
 if (!slugs.length) { console.error('uso: node lote.mjs <slug ...> | --todas [opções]  (ver cabeçalho)'); process.exit(1); }
-let cidades = slugs.map(dadosCidade);
+let cidades = slugs.map(TEMA.dados);
 const erros = cidades.filter((c) => c.erro);
 cidades = cidades.filter((c) => !c.erro);
 if (opc('--fundo')) cidades = cidades.filter((c) => c.fundo === opc('--fundo'));
@@ -53,7 +63,7 @@ for (const e of erros.slice(0, 5)) console.log(`  fora: ${e.slug} (${e.erro})`);
 // ---------------------------------------------------------------- vozes
 const durMp3 = (a) => (fs.statSync(a).size * 8) / 48000; // edge-tts: MP3 CBR 48 kbps
 if (!flag('--sem-voz')) {
-  const tarefas = cidades.flatMap((c) => c.falas.map((texto, i) => ({ arquivo: path.join(DIR_VOZ, `${c.slug}-${i + 1}.mp3`), texto })));
+  const tarefas = cidades.flatMap((c) => c.falas.map((texto, i) => ({ arquivo: path.join(DIR_VOZ, `${c.slug}-${TEMA.voz}${i + 1}.mp3`), texto })));
   const tj = path.join(DIR_VOZ, '_tarefas.json');
   fs.mkdirSync(DIR_VOZ, { recursive: true });
   fs.writeFileSync(tj, JSON.stringify(tarefas));
@@ -102,29 +112,29 @@ async function uma(c) {
   const dir = path.join(RAIZ, 'saida/territorios', c.slug, 'video');
   const vozes = [], duracoes = [], legendas = [];
   for (let i = 0; i < c.falas.length; i++) {
-    const a = path.join(DIR_VOZ, `${c.slug}-${i + 1}.mp3`);
+    const a = path.join(DIR_VOZ, `${c.slug}-${TEMA.voz}${i + 1}.mp3`);
     if (flag('--sem-voz')) { duracoes.push(MINIMO[i]); continue; }
     if (!fs.existsSync(a)) throw new Error(`sem voz ${i + 1}`);
-    vozes.push(BASE + `video/vozes/territorios/${c.slug}-${i + 1}.mp3`);
+    vozes.push(BASE + `video/vozes/territorios/${c.slug}-${TEMA.voz}${i + 1}.mp3`);
     legendas.push(JSON.parse(fs.readFileSync(a.replace(/\.mp3$/, '.json'), 'utf8')));
     duracoes.push(Math.max(MINIMO[i], ATRASO_VOZ + Math.ceil(durMp3(a) * FPS) + FOLGA));
   }
   duracoes[duracoes.length - 1] += FECHO_EXTRA;
   const props = { ...c.props, foto: BASE + c.arquivoFundo, vozes, duracoes, legendas };
   const assinatura = JSON.stringify({ ...props, foto: c.arquivoFundo, vozes: vozes.map((v) => v.replace(BASE, '')), falas: c.falas });
-  const mp4 = path.join(dir, 'saude.mp4'), pj = path.join(dir, 'saude.props.json');
+  const mp4 = path.join(dir, `${TEMA.arq}.mp4`), pj = path.join(dir, `${TEMA.arq}.props.json`);
   const total = duracoes.reduce((a, b) => a + b, 0) / FPS;
   if (!flag('--refazer') && fs.existsSync(mp4) && fs.existsSync(pj) && fs.readFileSync(pj, 'utf8') === assinatura) { puladas++; return; }
   fs.mkdirSync(dir, { recursive: true });
   const t = Date.now();
-  const composition = await selectComposition({ serveUrl, id: 'Saude', inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
+  const composition = await selectComposition({ serveUrl, id: TEMA.comp, inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
   await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: mp4 + '.tmp.mp4', inputProps: props, concurrency: CONC, scale: ESCALA, x264Preset: 'veryfast', imageFormat: 'jpeg', puppeteerInstance: browser, logLevel: 'error' });
   fs.renameSync(mp4 + '.tmp.mp4', mp4);
   fs.writeFileSync(pj, assinatura);
   if (flag('--frames')) {
     const ini = duracoes.map((_, i) => duracoes.slice(0, i).reduce((a, b) => a + b, 0));
-    for (const [nome, f] of [['abertura', ini[1] - 15], ['numero', ini[2] - 15], ['farmacia', ini[3] - 15], ['corte', ini[4] - 15], ['fecho', ini[4] + duracoes[4] - 35]])
-      await renderStill({ composition, serveUrl, output: path.join(dir, `saude-${nome}.png`), frame: f, inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
+    for (const [nome, f] of [ini[1] - 15, ini[2] - 15, ini[3] - 15, ini[4] - 15, ini[4] + duracoes[4] - 35].map((f, i) => [TEMA.cenas[i], f]))
+      await renderStill({ composition, serveUrl, output: path.join(dir, `${TEMA.arq}-${nome}.png`), frame: f, inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
   }
   const obs = total < 20 || total > 45 ? `duração fora do normal (${total.toFixed(1)} s)` : '';
   registra(c, obs ? 'conferir' : 'ok', total.toFixed(1), ((Date.now() - t) / 1000).toFixed(0), obs);

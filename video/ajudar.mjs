@@ -18,7 +18,7 @@ const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const FILA = (process.env.FILA_URL || 'https://fila-videos.boralula.workers.dev').replace(/\/$/, '');
 // um trabalho ou vários, separados por vírgula: esvaziada a fila de um, segue para o próximo (Gui, 22/10: quem ajuda
 // dispara uma vez só). Padrão: o que a campanha está produzindo agora, na ordem.
-const TRABALHOS = opc('--trabalho', process.env.TRABALHO || 'video-saude,video-mcmv,video-postonovo').split(',').map((t) => t.trim()).filter(Boolean);
+const TRABALHOS = opc('--trabalho', process.env.TRABALHO || 'video-saude,video-mcmv,video-postonovo,video-aposentados').split(',').map((t) => t.trim()).filter(Boolean);
 const LIMITE = +opc('--limite', Infinity), LOTE = Math.min(50, +opc('--lote', 10));
 const QUEM = opc('--quem', process.env.AJUDANTE || os.hostname());
 const PROPRIAS = new Set(['--trabalho', '--limite', '--lote', '--quem']);

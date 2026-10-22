@@ -1,6 +1,7 @@
 import React from 'react';
 import { Composition } from 'remotion';
 import { FPS, PADRAO, Saude, SaudeProps } from './Saude';
+import { Aposentados, Escola } from './Temas';
 import { Historia, HistoriaProps, duracaoHistoria } from './Historia';
 import historiaExemplo from '../public/carteira-vazia/props.json';
 
@@ -32,6 +33,21 @@ export const Root: React.FC = () => (
     defaultProps={historiaExemplo as HistoriaProps}
     calculateMetadata={({ props }) => ({ durationInFrames: duracaoHistoria(props.cenas) })}
   />
+  {([['Escola', Escola], ['Aposentados', Aposentados]] as const).map(([id, C]) => (
+    <Composition
+      key={id}
+      id={id}
+      component={C}
+      durationInFrames={PADRAO.reduce((a, b) => a + b, 0)}
+      fps={FPS}
+      width={1080}
+      height={1920}
+      defaultProps={exemplo}
+      calculateMetadata={({ props }) => ({
+        durationInFrames: (props.duracoes?.length === PADRAO.length ? props.duracoes : PADRAO).reduce((a, b) => a + b, 0),
+      })}
+    />
+  ))}
   <Composition
     id="Saude"
     component={Saude}

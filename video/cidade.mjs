@@ -10,12 +10,10 @@ export const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.
 // VIDEO_DADOS=video/exemplo (lote.mjs --exemplo), o kit pequeno que vai no git para quem quer testar sem os brutos.
 export const dadosRel = () => (process.env.VIDEO_DADOS ? process.env.VIDEO_DADOS.replace(/\/?$/, '/') : '');
 const D = (p) => path.join(RAIZ, dadosRel(), p);
-// crédito do fundo de satélite (cidade sem foto; video/fundo_satelite.py no repositório privado): a Esri pede na imagem
-export const CREDITO_SATELITE = 'Imagem de satélite: Esri, Vantor, Earthstar Geographics e GIS User Community';
 const ler = (p) => JSON.parse(fs.readFileSync(D(p), 'utf8'));
 let FOTOS, FALADOS;
 
-const limpa = (s) => String(s ?? '').replace(/ /g, ' ');
+export const limpa = (s) => String(s ?? '').replace(/ /g, ' ');
 
 // "21 milhões e 800 mil reais", coerente com o "21,8 milhões" da tela
 export function falado(v, comReais = true) {
@@ -29,15 +27,16 @@ export function falado(v, comReais = true) {
   return `${Math.round(v / 1e3)} mil${r}`;
 }
 
-// "Foto: Fulano (CC BY-SA 4.0, Wikimedia Commons)", pulando o que estiver vazio
+// "Foto: Fulano (CC BY-SA 4.0, Wikimedia Commons)", pulando o que estiver vazio. Autor que já vem com "Foto:" ou
+// "Crédito:" no catálogo perde o prefixo; o que começa com "Foto"/"Fotos" ("Foto retirada do Google Maps") fica sem outro.
 export function credito(f) {
   if (!f) return '';
   const ORIGEM = { Prefeitura: 'site da prefeitura', Enviada: '', IBGE: 'IBGE' };
   const origem = /wikimedia\.org/.test(f.url) ? 'Wikimedia Commons' : /flickr/.test(f.url) ? 'Flickr' : (ORIGEM[f.verbete] ?? '');
   const dentro = [f.licenca, origem].filter(Boolean).join(', ');
-  const autor = limpa(f.autor).trim();
+  const autor = limpa(f.autor).trim().replace(/^(fotos?|cr[ée]ditos?)\s*:\s*/i, '');
   if (!autor && !dentro) return '';
-  return autor ? `Foto: ${autor}${dentro ? ` (${dentro})` : ''}` : `Foto: ${dentro}`;
+  return autor ? `${/^fotos?\b/i.test(autor) ? '' : 'Foto: '}${autor}${dentro ? ` (${dentro})` : ''}` : `Foto: ${dentro}`;
 }
 
 // Devolve { slug, props (sem duracoes/vozes/legendas), falas[5], fundo, arquivoFundo } ou { slug, erro }
@@ -68,17 +67,9 @@ export function dadosCidade(slug) {
   const bairro = generica ? '' : limpa(nomes.bairro);
 
   const cs = slug.split('--')[0]; // foto e mapa da cidade
-  const f = FOTOS[cs];
-  const temFoto = f && f.url && ['revisada', 'enviada'].includes(f.status) && fs.existsSync(D(`dados/brutos/fotos_cidades/${cs}.jpg`));
-  // o mapa pode vir do SVG dos brutos (o lote rasteriza) ou já em JPEG em video/mapas/ (kit da fila, ajudar.mjs)
-  const temMapa = fs.existsSync(D(`dados/brutos/artes_mapa/${cs}-saude.svg`)) || fs.existsSync(path.join(RAIZ, 'video/mapas', `${cs}.jpg`));
-  // sem foto: a imagem de satélite da sede (kit da fila, desde 21/10) e, sem ela, o mapa
-  const temSatelite = !temFoto && fs.existsSync(D(`dados/brutos/satelites/${cs}.jpg`));
-  if (!temFoto && !temSatelite && !temMapa) return { slug, erro: 'sem foto aprovada, sem satélite e sem mapa' };
-  const fundo = temFoto ? 'foto' : temSatelite ? 'satelite' : 'mapa';
-  // mapa: JPEG feito pelo video/mapas.mjs a partir do SVG (o lote roda antes de renderizar)
-  const arquivoFundo = temFoto ? `${dadosRel()}dados/brutos/fotos_cidades/${cs}.jpg`
-    : temSatelite ? `${dadosRel()}dados/brutos/satelites/${cs}.jpg` : `video/mapas/${cs}.jpg`;
+  const fc = fundoCidade(cs);
+  if (fc.erro) return { slug, erro: fc.erro };
+  const { fundo, arquivoFundo, fotoCredito } = fc;
 
   const cidade = limpa(ped.municipio.municipio);
   const Art = artigo === 'o' ? 'O' : 'A';
@@ -105,7 +96,7 @@ export function dadosCidade(slug) {
     manchete: limpa(p1.data.manchete).split('\n'), // "AMA Capão Redondo / em risco", como no card
     foto: arquivoFundo, // o lote troca pelo endereço do servidor local
     fundo,
-    fotoCredito: temFoto ? credito(f) : temSatelite ? CREDITO_SATELITE : 'Mapa: malha municipal do IBGE',
+    fotoCredito,
     valorAno: aps,
     ubs,
     artigo,
@@ -114,4 +105,23 @@ export function dadosCidade(slug) {
     trilha: 'trilha.wav',
   };
   return { slug, props, falas, fundo, arquivoFundo, cs };
+}
+
+// Fundo do vídeo de uma cidade: foto aprovada (como nos cards: status revisada ou enviada, com arquivo nos brutos) ou,
+// sem ela, a imagem de satélite da sede (video/fundo_satelite.py, desde 21/10) e, sem as duas, o mapa do município.
+// Vale para todos os temas.
+export const CREDITO_SATELITE = 'Imagem de satélite: Esri, Vantor, Earthstar Geographics e GIS User Community'; // = fundo_satelite.CREDITO
+export function fundoCidade(cs) {
+  FOTOS ??= ler('dados/fotos_cidades.json');
+  const f = FOTOS[cs];
+  const temFoto = f && f.url && ['revisada', 'enviada'].includes(f.status) && fs.existsSync(D(`dados/brutos/fotos_cidades/${cs}.jpg`));
+  if (temFoto) return { fundo: 'foto', arquivoFundo: `${dadosRel()}dados/brutos/fotos_cidades/${cs}.jpg`, fotoCredito: credito(f) };
+  if (fs.existsSync(D(`dados/brutos/satelites/${cs}.jpg`))) {
+    return { fundo: 'satelite', arquivoFundo: `${dadosRel()}dados/brutos/satelites/${cs}.jpg`, fotoCredito: CREDITO_SATELITE };
+  }
+  // o mapa pode vir do SVG dos brutos (o lote rasteriza) ou já em JPEG em video/mapas/ (kit da fila, ajudar.mjs)
+  const temMapa = fs.existsSync(D(`dados/brutos/artes_mapa/${cs}-saude.svg`)) || fs.existsSync(path.join(RAIZ, 'video/mapas', `${cs}.jpg`));
+  if (!temMapa) return { erro: 'sem foto aprovada, sem satélite e sem mapa' };
+  // mapa: JPEG feito pelo video/mapas.mjs a partir do SVG (o lote roda antes de renderizar)
+  return { fundo: 'mapa', arquivoFundo: `video/mapas/${cs}.jpg`, fotoCredito: 'Mapa: malha municipal do IBGE' };
 }

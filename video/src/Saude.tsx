@@ -36,6 +36,9 @@ export type SaudeProps = {
   vozes: string[]; // mp3 em public/ ou URL, um por cena; vazio = sem locução
   legendas?: Palavra[][]; // uma lista de palavras por cena; vazio = sem legenda
   trilha: string; // wav/mp3 em public/; vazio = sem trilha
+  alerta?: string; // faixa da abertura (padrão "ALERTA · SAÚDE"); os outros temas (Temas.tsx) trocam
+  fecho?: string; // texto do fecho antes do destaque (padrão "COMPARTILHE COM QUEM USA O SUS NO BAIRRO|EM")
+  fechoDestaque?: string; // destaque em amarelo no fecho (padrão: bairro ou cidade)
 };
 
 export const COR = {
@@ -60,7 +63,7 @@ export function milhares(v: number): { num: string; sufixo: string } {
   return { num: Math.round(v).toLocaleString('pt-BR'), sufixo: '' };
 }
 
-const Caixa: React.FC<{ cor: string; texto: string; children: React.ReactNode; rot?: number; px?: number }> = ({
+export const Caixa: React.FC<{ cor: string; texto: string; children: React.ReactNode; rot?: number; px?: number }> = ({
   cor, texto, children, rot = -2, px = 96,
 }) => (
   <div style={{ display: 'inline-block', transform: `rotate(${rot}deg)`, position: 'relative' }}>
@@ -75,24 +78,24 @@ const Caixa: React.FC<{ cor: string; texto: string; children: React.ReactNode; r
 export const src = (s: string) => (/^https?:/.test(s) ? s : staticFile(s));
 
 // Tamanho do nome da cidade conforme o comprimento, para nomes longos caberem em até 3 linhas.
-const pxNome = (s: string) => (s.length <= 10 ? 190 : s.length <= 16 ? 160 : 130);
+export const pxNome = (s: string) => (s.length <= 10 ? 190 : s.length <= 16 ? 160 : 130);
 
 const sem = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 // Frame (dentro da cena) em que a fala chega à palavra; sem legenda, uma fração da cena.
-const naPalavra = (leg: Palavra[] | undefined, palavra: string, dur: number, fracao: number) => {
+export const naPalavra = (leg: Palavra[] | undefined, palavra: string, dur: number, fracao: number) => {
   const p = leg?.find((w) => sem(w[2]) === sem(palavra));
   return p ? ATRASO_VOZ + Math.round(p[0] * FPS) : Math.round(dur * fracao);
 };
 
-const useSaida = (dur: number) => {
+export const useSaida = (dur: number) => {
   const f = useCurrentFrame();
   return interpolate(f, [dur - 10, dur], [1, 0], { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
 };
 
-type Cena = React.FC<SaudeProps & { dur: number; leg?: Palavra[] }>;
+export type Cena = React.FC<SaudeProps & { dur: number; leg?: Palavra[] }>;
 
-const Abertura: Cena = ({ cidade, uf, bairro, foto, fundo, dur }) => {
+export const Abertura: Cena = ({ cidade, uf, bairro, foto, fundo, dur, alerta }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const zoom = interpolate(f, [0, dur], [1.05, 1.18]);
@@ -118,7 +121,7 @@ const Abertura: Cena = ({ cidade, uf, bairro, foto, fundo, dur }) => {
       )}
       {/* faixa vermelha de urgência no topo */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 150, background: COR.vermelho, transform: `translateY(${(1 - faixa) * -160}px)`, display: 'flex', alignItems: 'flex-end', padding: '0 80px 26px' }}>
-        <div style={{ ...ARCHIVO, fontSize: 64, color: COR.branco, letterSpacing: 2 }}>ALERTA · SAÚDE</div>
+        <div style={{ ...ARCHIVO, fontSize: 64, color: COR.branco, letterSpacing: 2 }}>{alerta ?? 'ALERTA · SAÚDE'}</div>
       </div>
       <div style={{ position: 'absolute', left: 80, right: 80, bottom: 520, transform: `translateY(${(1 - sobe) * 200}px)`, opacity: sobe }}>
         {/* o município em destaque; embaixo, pequeno, o bairro (território de bairro) ou a UF */}
@@ -206,7 +209,7 @@ const Farmacia: Cena = ({ dur }) => {
 };
 
 // tarja zebrada de atenção
-const Tarja: React.FC<{ x: number }> = ({ x }) => (
+export const Tarja: React.FC<{ x: number }> = ({ x }) => (
   <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120, background: `repeating-linear-gradient(-45deg, ${COR.amarelo} 0 40px, ${COR.fundo} 40px 80px)`, backgroundPosition: `${x}px 0`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <div style={{ ...ARCHIVO, fontSize: 60, background: COR.amarelo, color: COR.fundo, padding: '12px 36px 4px' }}>EM RISCO</div>
   </div>
@@ -214,7 +217,7 @@ const Tarja: React.FC<{ x: number }> = ({ x }) => (
 
 // Foto do Flávio com a tesoura (modelos/cidades/arte-flavio-tesoura.jpg, imagem da web: confirmar o direito de uso)
 // ao fundo, com o texto num retângulo semitransparente abaixo do rosto.
-const Corte: Cena = ({ cidade, manchete, dur, leg }) => {
+export const Corte: Cena = ({ cidade, manchete, dur, leg }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const zoom = interpolate(f, [0, dur], [1.0, 1.08]);
@@ -248,15 +251,15 @@ const Corte: Cena = ({ cidade, manchete, dur, leg }) => {
   );
 };
 
-const Fecho: Cena = ({ cidade, bairro, fonte, fotoCredito }) => {
+export const Fecho: Cena = ({ cidade, bairro, fonte, fotoCredito, fecho, fechoDestaque }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const entra = spring({ frame: f, fps, config: { damping: 20 } });
   return (
     <AbsoluteFill style={{ background: COR.fundo, color: COR.branco, padding: '0 80px', justifyContent: 'center' }}>
       <div style={{ marginTop: -240 }}>
-        <div style={{ ...ARCHIVO, fontSize: Math.min(112, Math.floor(1500 / Math.max(...(bairro || cidade).split(' ').map((w) => w.length)))), lineHeight: 1.0, opacity: entra, transform: `translateY(${(1 - entra) * 60}px)` }}>
-          COMPARTILHE COM QUEM USA O SUS {bairro ? 'NO BAIRRO' : 'EM'} <span style={{ color: COR.amarelo }}>{(bairro || cidade).toUpperCase()}</span>
+        <div style={{ ...ARCHIVO, fontSize: Math.min(112, Math.floor(1500 / Math.max(...(fechoDestaque || bairro || cidade).split(' ').map((w) => w.length)))), lineHeight: 1.0, opacity: entra, transform: `translateY(${(1 - entra) * 60}px)` }}>
+          {fecho ?? `COMPARTILHE COM QUEM USA O SUS ${bairro ? 'NO BAIRRO' : 'EM'}`} <span style={{ color: COR.amarelo }}>{(fechoDestaque || bairro || cidade).toUpperCase()}</span>
         </div>
       </div>
       <div style={{ position: 'absolute', left: 80, right: 80, bottom: 70, ...MONTSERRAT, fontWeight: 500, fontSize: 22, lineHeight: 1.35, color: '#9aa3b5', opacity: entra }}>
@@ -325,7 +328,10 @@ export const Legenda: React.FC<{ lista: Trecho[]; cor?: string }> = ({ lista, co
 
 const CENAS = [Abertura, Numero, Farmacia, Corte, Fecho];
 
-export const Saude: React.FC<SaudeProps> = (p) => {
+export const Saude: React.FC<SaudeProps> = (p) => <Montagem {...p} cenas={CENAS} />;
+
+// Junta as cenas (uma por fala), a legenda, as vozes e a trilha. Serve também aos vídeos de Temas.tsx.
+export const Montagem: React.FC<SaudeProps & { cenas: Cena[] }> = ({ cenas: CENAS, ...p }) => {
   carregarFontes();
   const { durationInFrames } = useVideoConfig();
   const dur = p.duracoes?.length === CENAS.length ? p.duracoes : PADRAO;
