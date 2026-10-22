@@ -61,7 +61,10 @@ TEMAS_CARDS = {"saude": "Saúde", "aposentado": "Aposentado", "educacao": "Educa
 ESTILOS = {"preto": "Preto", "colorido": "Colorido"}
 JOGO = {"1200138": "pmtqzh5wsk", "3549805:vila-toninho": "gjz6dpx5a3"}   # o mesmo de scripts/acervo.py
 MATERIAIS = ("video", "cards", "massa", "atalhos", "links")
-PADRAO = ("video", "cards")      # Gui, 2026-10-20: só o que está no cards.boralula.org (os 12 cards e o vídeo de Saúde)
+PADRAO = ("video", "cards")
+# Vídeo de Saúde fora do ar no site (dados/videos_saude_retirados.json do repositório privado, 22/10): sem UBS ativa no
+# CNES ou com o posto do bairro desativado. O mp4 antigo segue no R2, então o espelho não pode subir só por existir lá.
+SAUDE_FORA_DO_AR = {"pr-rancho-alegre", "rs-sao-joao-da-urtiga", "ba-juazeiro--nossa-senhora-das-gr", "mg-uba--distrito-de-ubeba"}      # Gui, 2026-10-20: só o que está no cards.boralula.org (os 12 cards e o vídeo de Saúde)
 
 
 def sem_acento(s: str) -> str:
@@ -197,6 +200,7 @@ def plano_da_cidade(cid, rc, origens, so, ja):
 
     if "video" in so:
         for t in terrs:
+            if t[0] in SAUDE_FORA_DO_AR: continue
             arq = f"Vídeo/Alerta Saúde SUS{' - ' + t[1] if varios and t[1] else ''}.mp4"
             url = f"{FILA}/video-saude/{t[0]}/saude.mp4"
             if falta(arq) and existe_no_r2(url):
