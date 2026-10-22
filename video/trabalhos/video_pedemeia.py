@@ -26,6 +26,7 @@ from pathlib import Path
 
 VIDEO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(VIDEO))
+import abertura as AB  # noqa: E402  (abertura padrão: cartão no 1º quadro, voz e "Entenda por quê")
 import pedemeia_cena4  # noqa: E402
 import pedemeia_comum as C  # noqa: E402
 
@@ -86,7 +87,11 @@ def montar(it: dict, dur: list, total: float, proc: int) -> None:
                 pedemeia_cena4.desenhar(it["fundo"], it["dado"], dur[3], parcial, ass_arq, proc, credito=it["credito"])
             os.replace(parcial, pronto)
         pecas.append(pronto)
-    # cola as seis peças sem recodificar
+    # abertura antes da história (~6 s), sobre o 1º quadro da peça 1
+    ab = AB.abertura(it, tmp("p0.mp4"), COMUM / "pecas/peca1.mp4", VOZES, "O PÉ-DE-MEIA ESTÁ AMEAÇADO", "pé")
+    pecas.insert(0, tmp("p0.mp4"))
+    total += ab
+    # cola as peças sem recodificar
     lista = tmp("lista.txt")
     lista.write_text("\n".join(f"file '{str(p).replace(chr(92), '/')}'" for p in pecas), encoding="utf-8")
     C.ffmpeg("-f", "concat", "-safe", "0", "-i", lista, "-c", "copy", tmp("video.mp4"))
@@ -99,20 +104,23 @@ def montar(it: dict, dur: list, total: float, proc: int) -> None:
 
     for i in range(6):
         n = add(C.voz_arquivo(VOZES, it["texto"][i]))
-        atraso = round((C.inicio_final(dur, i) + C.ATRASO / C.FPS / C.VEL) * 1000)
+        atraso = round((ab + C.inicio_final(dur, i) + C.ATRASO / C.FPS / C.VEL) * 1000)
         filtros.append(f"[{n}:a]atempo={C.VEL * it['extra'][i]:.4f},adelay={atraso}|{atraso}[v{i}]")
         mix.append(f"[v{i}]")
+    n = add(C.voz_arquivo(VOZES, it["abertura"]))
+    filtros.append(f"[{n}:a]atempo={C.VEL:.4f},adelay=150|150[vab]")
+    mix.append("[vab]")
     for i in range(3):
         n = add(COMUM / f"clip{i + 1}.mp4")
         vel, seg = min(1, C.CLIPES[i] / dur[i]), dur[i] / C.FPS / C.VEL
-        atraso = round(C.inicio_final(dur, i) * 1000)
+        atraso = round((ab + C.inicio_final(dur, i)) * 1000)
         filtros.append(f"[{n}:a]atempo={C.VEL * vel:.4f},atrim=0:{seg:.3f},afade=t=in:d=0.5,afade=t=out:st={seg - 0.6:.3f}:d=0.6,"
                        f"volume={C.AMBIENTE},adelay={atraso}|{atraso}[a{i}]")
         mix.append(f"[a{i}]")
     m = add(COMUM / "musica.mp3")
-    filtros.append(f"[{m}:a]atrim=0:{total:.2f},afade=t=in:d=2,afade=t=out:st={total - 4:.2f}:d=4,volume={C.MUSICA}[mu]")
-    mix.append("[mu]")
-    filtros.append(f"{''.join(mix)}amix=inputs={len(mix)}:duration=longest:normalize=0,atrim=0:{total:.3f}[a]")
+    filtros.append(f"[{m}:a]apad,atrim=0:{total:.2f},afade=t=in:d=2,afade=t=out:st={total - 4:.2f}:d=4,volume={C.MUSICA}[mu]")
+    # a música (que vai até o fim) primeiro e duration=first: com longest o amix parava antes e o -shortest cortava o fim
+    filtros.append("[mu]" + "".join(mix) + f"amix=inputs={len(mix) + 1}:duration=first:normalize=0,atrim=0:{total:.3f}[a]")
     C.ffmpeg(*entradas, "-filter_complex", ";".join(filtros), "-map", "[a]", "-c:a", "aac", "-b:a", "160k", tmp("audio.m4a"))
     fin = it["saida"]
     fin.parent.mkdir(parents=True, exist_ok=True)
@@ -152,7 +160,8 @@ def main() -> int:
     if not itens:
         return 1
     # todas as versões de uma vez (são poucas e o cache guarda): a escolha da que cabe vem depois
-    C.gerar_vozes(VOZES, [*C.FIXAS.values(), *(t for it in itens for i in VARIAVEIS for t in it["falas"][i])])
+    C.gerar_vozes(VOZES, [*C.FIXAS.values(), *(t for it in itens for i in VARIAVEIS for t in it["falas"][i]),
+                          *(it["abertura"] for it in itens)])
     ok = 0
     for it in itens:
         t0 = time.time()

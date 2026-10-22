@@ -7,6 +7,7 @@
 // Muda por território: fala 1 (bairro e cidade), fala 2 (rua da farmácia credenciada perto, quando há) e fala 4
 // (atendidos em ago/2026; cidade sem farmácia credenciada usa o número do estado).
 // Entradas por item: <slug>.json (kit_fundos.py) e <cidade>.jpg. Saída: <pasta-saidas>/<slug>/insulina.mp4.
+import { spawnSync } from 'child_process';
 import fs from 'fs';
 import http from 'http';
 import path from 'path';
@@ -46,26 +47,38 @@ function falado(v) {
   return `${m} ${m === 1 ? 'milhão' : 'milhões'}${r ? ` e ${r} mil` : ''}`;
 }
 
+// O bairro com o artigo do povo ("no Capão Redondo", "na Vila Prudente"), nunca "no bairro X" (Gui, 21/10): a tabela sai
+// do video/lugar_falado.py --json; bairro fora dela (nome que não se fala) usa a versão só com a cidade.
+const LUGAR = JSON.parse(fs.readFileSync(path.join(C.VIDEO, 'lugar_falado.json'), 'utf8'));
+const deCidade = (c) => LUGAR.cidades[c] ?? `de ${c}`;
+const confere = (t) => { if (/\bbairro\s+[A-ZÀ-Ý]/.test(t)) throw new Error(`fala com "bairro X": ${t}`); return t; };
+
 // Falas variáveis, cada uma com as versões mais curtas para quando a cheia não cabe na janela da cena
 function roteiro(d, slug) {
   const ped = d.pedidos, nomes = ped.nomes ?? {};
   const cidade = limpa(ped.municipio.municipio), uf = ped.municipio.uf, ibge = String(ped.municipio.cod_ibge);
-  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
+  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro).split(/\s+/).join(' ') : '';
+  const [noBairro, doBairro] = LUGAR.bairros[bairro] ?? [null, null];
   const [atend, pop] = FP.municipios[ibge] ?? [0, 0];
   const doEstado = !atend;
   const [a, p] = doEstado ? FP.ufs[uf] : [atend, pop];
   const onde = doEstado ? ESTADOS[uf][0] : `Aqui em ${cidade}`;
   const quem = a === 1 ? '1 pessoa pegou' : `${falado(a)} pessoas pegaram`;
   const fim = ' Tem diabetes e usa insulina todo dia.';
-  return {
+  const abertura = `Atenção, morador ${doBairro ?? deCidade(cidade)}: a Farmácia Popular está ameaçada. Entenda por quê.`;
+  const r = {
     falas: {
-      0: bairro ? [`Seu Raimundo mora no bairro ${bairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora no ${bairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui em ${cidade}.${fim}`]
+      0: noBairro ? [`Seu Raimundo mora ${noBairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui em ${cidade}.${fim}`]
         : [`Seu Raimundo mora aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui.${fim}`],
       1: [...(RUA[slug] ? [`Todo mês ele pega a insulina na farmácia ${RUA[slug]}. E não paga nada.`] : []), 'Todo mês ele pega a insulina na farmácia. E não paga nada.'],
       3: [`${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`, `${onde}, ${quem} remédio de graça em ${FP.mes}.`],
     },
     dado: { local: doEstado ? ESTADOS[uf][1] : `${cidade} - ${uf}`, atendidos: a, populacao: p, mes: FP.mes },
+    // abertura padrão (video/abertura.py): a prévia traz a cidade; a voz e a animação, o bairro
+    abertura, morador: deCidade(cidade), morador_fala: doBairro ?? deCidade(cidade), local: `${cidade} - ${uf}`,
   };
+  for (const t of [...Object.values(r.falas).flat(), abertura]) confere(t);
+  return r;
 }
 
 // ---------------------------------------------------------------- arquivos comuns (uma vez por máquina)
@@ -131,6 +144,18 @@ const servidor = http.createServer((req, res) => {
 await new Promise((ok) => servidor.listen(0, '127.0.0.1', ok));
 const BASE = `http://127.0.0.1:${servidor.address().port}`;
 
+// ---------------------------------------------------------------- abertura padrão do lote (video/abertura.py, uma chamada)
+const AB = {};
+{
+  const pedidos = path.join(TMP, 'abertura.json');
+  fs.writeFileSync(pedidos, JSON.stringify({ vozes: VOZES, selo: 'A FARMÁCIA POPULAR ESTÁ AMEAÇADA', palavra_selo: 'farmácia',
+    itens: itens.map((it) => ({ abertura: it.abertura, morador: it.morador, morador_fala: it.morador_fala, local: it.local,
+      primeiro: path.join(COMUM, 'pecas/peca1.mp4'), saida: path.join(TMP, `${it.slug}-p0.mp4`) })) }));
+  const r = spawnSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), [path.join(C.VIDEO, 'abertura.py'), pedidos], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+  if (r.status !== 0) { console.error('a abertura falhou'); process.exit(1); }
+  Object.assign(AB, JSON.parse(r.stdout.trim().split('\n').pop()));
+}
+
 // ---------------------------------------------------------------- montagem
 const serveUrl = await bundle({ entryPoint: path.join(C.VIDEO, 'src/index.ts'), publicDir: path.join(KIT, 'public-vazio') });
 const browser = await openBrowser('chrome', { chromiumOptions: { gl: opc('--gl', 'angle') } });
@@ -155,7 +180,10 @@ for (const it of itens) {
       C.ffmpeg('-i', entrada, '-vf', filtros.join(','), ...C.ENC, tmp(`p${i + 1}.mp4`));
       pecas.push(tmp(`p${i + 1}.mp4`));
     }
-    // cola as seis peças sem recodificar
+    // a abertura na frente (~6 s): tudo que vem depois desloca
+    const ab = AB[tmp('p0.mp4')], total = TOTAL + ab;
+    pecas.unshift(tmp('p0.mp4'));
+    // cola as peças sem recodificar
     fs.writeFileSync(tmp('lista.txt'), pecas.map((p) => `file '${p.replace(/\\/g, '/').replace(/'/g, "'\\''")}'`).join('\n'));
     C.ffmpeg('-f', 'concat', '-safe', '0', '-i', tmp('lista.txt'), '-c', 'copy', tmp('video.mp4'));
     // áudio: vozes no começo de cada cena (aceleradas 1,25x e, se preciso, um pouco mais), som ambiente dos três clipes e a música
@@ -163,26 +191,29 @@ for (const it of itens) {
     const add = (arq) => { entradas.push('-i', arq); return entradas.length / 2 - 1; };
     for (const i of [0, 1, 2, 3, 4, 5]) {
       const n = add(C.vozArquivo(VOZES, it.texto[i]));
-      const atraso = Math.round((C.inicioFinal(DUR, i) + C.ATRASO / C.FPS / C.VEL) * 1000);
+      const atraso = Math.round((ab + C.inicioFinal(DUR, i) + C.ATRASO / C.FPS / C.VEL) * 1000);
       filtros.push(`[${n}:a]atempo=${(C.VEL * it.extra[i]).toFixed(4)},adelay=${atraso}|${atraso}[v${i}]`);
       mix.push(`[v${i}]`);
     }
+    const nab = add(C.vozArquivo(VOZES, it.abertura));
+    filtros.push(`[${nab}:a]atempo=${C.VEL.toFixed(4)},adelay=150|150[vab]`);
+    mix.push('[vab]');
     for (const i of [0, 1, 2]) {
       const n = add(path.join(COMUM, `clip${i + 1}.mp4`));
-      const vel = Math.min(1, C.CLIPES[i] / DUR[i]), seg = DUR[i] / C.FPS / C.VEL, atraso = Math.round(C.inicioFinal(DUR, i) * 1000);
+      const vel = Math.min(1, C.CLIPES[i] / DUR[i]), seg = DUR[i] / C.FPS / C.VEL, atraso = Math.round((ab + C.inicioFinal(DUR, i)) * 1000);
       filtros.push(`[${n}:a]atempo=${(C.VEL * vel).toFixed(4)},atrim=0:${seg.toFixed(3)},afade=t=in:d=0.5,afade=t=out:st=${(seg - 0.6).toFixed(3)}:d=0.6,volume=${C.AMBIENTE},adelay=${atraso}|${atraso}[a${i}]`);
       mix.push(`[a${i}]`);
     }
     const m = add(path.join(COMUM, 'musica.mp3'));
-    filtros.push(`[${m}:a]atrim=0:${TOTAL.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(TOTAL - 4).toFixed(2)}:d=4,volume=${C.MUSICA}[mu]`);
-    mix.push('[mu]');
-    filtros.push(`${mix.join('')}amix=inputs=${mix.length}:duration=longest:normalize=0,atrim=0:${TOTAL.toFixed(3)}[a]`);
+    filtros.push(`[${m}:a]apad,atrim=0:${total.toFixed(2)},afade=t=in:d=2,afade=t=out:st=${(total - 4).toFixed(2)}:d=4,volume=${C.MUSICA}[mu]`);
+    // a música (que vai até o fim) primeiro e duration=first: com longest o amix parava antes e o -shortest cortava o fim
+    filtros.push(`[mu]${mix.join('')}amix=inputs=${mix.length + 1}:duration=first:normalize=0,atrim=0:${total.toFixed(3)}[a]`);
     C.ffmpeg(...entradas, '-filter_complex', filtros.join(';'), '-map', '[a]', '-c:a', 'aac', '-b:a', '160k', tmp('audio.m4a'));
     const fin = path.join(SAI, it.slug, 'insulina.mp4');
     fs.mkdirSync(path.dirname(fin), { recursive: true });
     C.ffmpeg('-i', tmp('video.mp4'), '-i', tmp('audio.m4a'), '-c', 'copy', '-shortest', '-movflags', '+faststart', fin);
     ok++;
-    console.log(`  ${it.slug}: ${TOTAL.toFixed(1)} s, montagem ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    console.log(`  ${it.slug}: ${total.toFixed(1)} s, montagem ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   } catch (e) {
     console.log(`  ${it.slug}: falhou (${e.message})`);
   } finally {

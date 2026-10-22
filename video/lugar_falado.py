@@ -8,7 +8,9 @@
 Os dois devolvem None quando o nome não dá para falar (abreviação, número, "Setor 09"): aí o roteiro usa a versão sem
 bairro. A preposição sai do primeiro termo; na dúvida "no", porque muito nome em -a é masculino ("no Ipiranga").
 
-  python video/lugar_falado.py      # lista como sai cada bairro dos territórios, para conferir de olho
+  python video/lugar_falado.py          # lista como sai cada bairro dos territórios, para conferir de olho
+  python video/lugar_falado.py --json   # e grava video/lugar_falado.json ({bairros: {nome: [no, do]}, cidades}) para
+                                        # os trabalhos em Node (insulina); rodar de novo quando o kit ganhar bairro
 """
 import re
 import unicodedata
@@ -119,5 +121,12 @@ if __name__ == "__main__":
         nomes = json.loads(f.read_text(encoding="utf-8")).get("nomes") or {}
         if nomes.get("regra") == "pares" and nomes.get("bairro"):
             vistos[" ".join(str(nomes["bairro"]).replace(" ", " ").split())] += 1
-    for b, _n in sorted(vistos.items()):
-        print(f"{b:40} {no_lugar(b) or '(sem bairro)':45} {do_lugar(b) or ''}")
+    if "--json" in sys.argv:
+        tabela = {"bairros": {b: [no_lugar(b), do_lugar(b)] for b in sorted(vistos) if no_lugar(b)},
+                  "cidades": {c: de_cidade(c) for c in CIDADE_COM_ARTIGO}}
+        destino = Path(__file__).resolve().parent / "lugar_falado.json"
+        destino.write_text(json.dumps(tabela, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+        print(f"{destino.name}: {len(tabela['bairros'])} bairros")
+    else:
+        for b, _n in sorted(vistos.items()):
+            print(f"{b:40} {no_lugar(b) or '(sem bairro)':45} {do_lugar(b) or ''}")

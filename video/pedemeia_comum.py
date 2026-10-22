@@ -95,9 +95,11 @@ def roteiro(ped: dict, slug: str, pdm: dict, escolas: dict) -> dict:
     quem_curto = "1 estudante recebe" if est == 1 else f"{falado(est)} estudantes recebem"
     escola = escolas.get(slug, "")
     fim_cheio, fim_curto = "e quase deixou a escola pra fazer uns bicos e ajudar em casa.", "e quase deixou a escola pra fazer bico."
-    if bairro:
-        f0 = [f"O Lucas tem 16 anos, mora no bairro {bairro}, aqui em {cidade}, {fim_cheio}",
-              f"O Lucas tem 16 anos, mora no bairro {bairro}, aqui em {cidade}, {fim_curto}",
+    import lugar_falado   # "no Capão Redondo", "na Vila Prudente": nunca "no bairro X" (Gui, 21/10)
+    no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)
+    if no_bairro:
+        f0 = [f"O Lucas tem 16 anos, mora {no_bairro}, aqui em {cidade}, {fim_cheio}",
+              f"O Lucas tem 16 anos, mora {no_bairro}, aqui em {cidade}, {fim_curto}",
               f"O Lucas tem 16 anos, mora aqui em {cidade}, {fim_curto}"]
     else:
         f0 = [f"O Lucas tem 16 anos, mora aqui em {cidade}, {fim_cheio}",
@@ -108,9 +110,15 @@ def roteiro(ped: dict, slug: str, pdm: dict, escolas: dict) -> dict:
     f1 = ([f"Mas continuou estudando. E agora, todo mês que mantém a frequência {escola}, o Pé-de-Meia cai na conta.",
            f"Mas continuou estudando. E todo mês que vai à aula {escola}, o Pé-de-Meia cai na conta."] if escola else []) + generica
     f3 = [f"{onde}, {quem} o Pé-de-Meia este ano.", f"{onde}, {quem_curto} o Pé-de-Meia."]
+    abertura = f"Atenção, morador {do_bairro or lugar_falado.de_cidade(cidade)}: o Pé-de-Meia está ameaçado. Entenda por quê."
+    for t in [*f0, *f1, *f3, abertura]:
+        lugar_falado.confere(t)   # trava: nenhuma fala com "bairro X"
     return {
         "falas": {0: f0, 1: f1, 3: f3},
         "dado": {"local": ESTADOS[uf][1] if do_estado else f"{cidade} - {uf}", "estudantes": est, "valor12m": valor, "ano": pdm["ano"]},
+        # abertura padrão (video/abertura.py): a prévia traz a cidade; a voz e a animação, o bairro
+        "abertura": abertura, "morador": lugar_falado.de_cidade(cidade),
+        "morador_fala": do_bairro or lugar_falado.de_cidade(cidade), "local": f"{cidade} - {uf}",
     }
 
 
