@@ -79,12 +79,14 @@ def main() -> int:
             r = C.roteiro(d["pedidos"], mm)
             if r is None:
                 raise ValueError("sem médico do Mais Médicos hoje, fica sem o vídeo")
-            itens.append({"slug": slug, "foto": foto, "saida": sai / slug / "maismedicos.mp4", **r})
+            credito = d.get("credito") if d.get("fundo") == "satelite" else None  # satélite: crédito na tela (kit_fundos.py)
+            itens.append({"slug": slug, "foto": foto, "saida": sai / slug / "maismedicos.mp4", "credito": credito, **r})
         except Exception as e:  # noqa: BLE001
             print(f"  {slug}: entradas incompletas ({e})")
     if not itens:
         return 1
-    C.gerar_vozes(M.VOZES, [*C.FIXAS.values(), C.CORTE_BRASIL, *(t for it in itens for v in it["falas"].values() for t in v)])
+    C.gerar_vozes(M.VOZES, [*C.FIXAS.values(), C.CORTE_BRASIL, *(t for it in itens for v in it["falas"].values() for t in v),
+                            *(it["abertura"] for it in itens)])
     for it in itens:
         C.encaixa(it, M.VOZES)
         for i in it["falas"]:

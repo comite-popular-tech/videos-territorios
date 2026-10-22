@@ -22,6 +22,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import maismedicos_comum as C  # noqa: E402
+from pedemeia_comum import _tempo  # noqa: E402
 
 KIT = C.VIDEO / "kit" / "video-maismedicos"
 VOZES, TMP, CACHE = KIT / "vozes", KIT / "render", KIT / "cache"
@@ -86,7 +87,7 @@ def info_dado(it: dict, fundo: str) -> dict:
     quadro = lambda p: round(C.tempo_palavra(leg, p, extra=ex) * C.FPS)
     return {"tipo": "mm_dado", "local": d["rotulo"], "antes": d["antes"], "agora": d["agora"],
             "tAntes": quadro("nenhum" if d["antes"] == 0 else C.falado(d["antes"]).split()[0]), "tHoje": quadro("Hoje"),
-            "fundo": f"@/{fundo}", "fonte": C.FONTE_DADO}
+            "fundo": f"@/{fundo}", "fonte": C.FONTE_DADO + (f" · {it['credito']}" if it.get("credito") else "")}  # satélite: crédito na tela
 
 
 def chave(*partes) -> str:
@@ -100,7 +101,8 @@ def cenas_dado(itens: list, raiz: Path, dur: int) -> None:
     faltam = {}
     for it in itens:
         fundo = it["foto"].relative_to(raiz).as_posix()
-        it["p4"] = CACHE / f"dado-{chave(it['texto'][3], it['extra'][3], it['dado'], it['foto'].name, dur)}.mp4"
+        # o crédito separa o mapa antigo do satélite que ficou no lugar dele (o arquivo tem o mesmo nome)
+        it["p4"] = CACHE / f"dado-{chave(it['texto'][3], it['extra'][3], it['dado'], it['foto'].name, it.get('credito'), dur)}.mp4"
         if not it["p4"].exists() and it["p4"] not in faltam:
             faltam[it["p4"]] = (it, fundo)
     if not faltam:
@@ -146,6 +148,51 @@ def pecas() -> int:
     return 0
 
 
+# ---------------------------------------------------------------- abertura (aprovada em 21/10; ideia do Gabriel: a
+# pessoa desengajava antes da história esquentar): uns 6 s antes da história, no primeiro quadro do clipe 1 escurecido,
+# com voz ("Atenção, morador do bairro X: o Mais Médicos está ameaçado. Entenda por quê.").
+AMARELO, VERMELHO = "&H0001B3F5", "&H002626DC"   # ASS em BGR
+
+
+def _estilos(ass_txt: str, linhas: list) -> str:
+    return ass_txt.replace("\n\n[Events]", "\n" + "\n".join(linhas) + "\n\n[Events]", 1)
+
+
+def abertura(it: dict, saida: Path, pecas_dir: Path) -> float:
+    """Abertura com voz: o primeiro quadro do clipe 1 (limpo no 1º quadro, a prévia do WhatsApp) escurece e entram
+    ATENÇÃO, o morador, o selo vermelho e o "Entenda por quê". Devolve a duração em segundos (tempo final)."""
+    leg = C.legenda_de(it["abertura"], VOZES)
+    dur = round((0.15 + C.fim_da_fala(leg) / C.VEL + 0.45) * C.FPS) / C.FPS
+    quando = lambda alvo, resto: 0.15 + next((t for t, _d, p in leg if p.lower().startswith(alvo)), C.fim_da_fala(leg) * resto) / C.VEL
+    t_selo, t_entenda = quando("mais", 0.5), quando("entenda", 0.8)
+    quadro = saida.with_suffix(".jpg")
+    C.ffmpeg("-i", pecas_dir / "peca1.mp4", "-frames:v", "1", "-q:v", "2", quadro)
+    morador = f"MORADOR {it['morador']}".upper()
+    tam = min(66, round(1650 / max(1, len(morador))))
+    cab = _estilos(C.ass([]), [
+        f"Style: Grande,Archivo Condensed Black,150,{AMARELO},&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,2,0,1,5,4,5,40,40,0,1",
+        f"Style: Morador,Archivo Condensed Black,{tam},&H00FFFFFF,&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,1,0,1,4,3,5,30,30,0,1",
+        f"Style: Entenda,Archivo Condensed Black,64,{AMARELO},&H00FFFFFF,&H00000000,&H64000000,0,0,0,0,100,100,2,0,1,4,3,5,30,30,0,1",
+        f"Style: Selo,Archivo Condensed Black,60,&H00FFFFFF,&H00FFFFFF,{VERMELHO},{VERMELHO},0,0,0,0,100,100,1,0,3,14,0,5,30,30,0,1",
+    ])
+    fim = _tempo(dur)
+    ev = [
+        f"Dialogue: 1,{_tempo(0.12)},{fim},Grande,,0,0,0,,{{\\pos(360,470)\\fscx160\\fscy160\\t(0,180,\\fscx100\\fscy100)}}ATENÇÃO",
+        f"Dialogue: 1,{_tempo(0.45)},{fim},Morador,,0,0,0,,{{\\pos(360,615)\\fad(150,0)}}{morador}",
+        f"Dialogue: 1,{_tempo(t_selo)},{fim},Selo,,0,0,0,,{{\\pos(360,765)\\frz3\\fad(80,0)}}O MAIS MÉDICOS ESTÁ AMEAÇADO",
+        f"Dialogue: 1,{_tempo(t_entenda)},{fim},Entenda,,0,0,0,,{{\\pos(360,900)\\fscx130\\fscy130\\t(0,160,\\fscx100\\fscy100)}}ENTENDA POR QUÊ",
+    ]
+    ass_arq = saida.with_suffix(".ass")
+    ass_arq.write_text(cab + "\n".join(ev) + "\n", encoding="utf-8")
+    n = round(dur * C.FPS)
+    filtro = (f"[0:v]scale={C.LARG}:{C.ALT},setsar=1,zoompan=z='1+0.0008*on':d={n}:s={C.LARG}x{C.ALT}:fps={C.FPS}[f];"
+              f"color=c=black:s={C.LARG}x{C.ALT}:r={C.FPS}:d={dur:.3f},format=rgba,colorchannelmixer=aa=0.62,"
+              f"fade=t=in:st=0.05:d=0.25:alpha=1[v];[f][v]overlay=format=auto:shortest=1,{C.filtro_ass(ass_arq)},"
+              "scale=out_range=tv,format=yuv420p")   # a foto vem em faixa cheia (yuvj): igual às peças, que são coladas sem recodificar
+    C.ffmpeg("-i", quadro, "-filter_complex", filtro, "-frames:v", str(n), *C.ENC, saida)
+    return dur
+
+
 def montar_um(it: dict, durs: dict, comum: Path = C.PUB) -> None:
     """Um vídeo: as peças prontas de comum/pecas/, a cena 1 com a legenda do território, a cena do dado (it["p4"]) e a
     mistura do áudio (vozes, som dos clipes de comum/ e a música)."""
@@ -158,7 +205,9 @@ def montar_um(it: dict, durs: dict, comum: Path = C.PUB) -> None:
     ass1.write_text(C.ass(it["leg"][0], extra=it["extra"][0]), encoding="utf-8")
     C.ffmpeg("-i", pecas_dir / "peca1.mp4", "-vf", C.filtro_ass(ass1), *C.ENC, tmp("p1.mp4"))
     d = it["dado"]
-    pecas_ = [tmp("p1.mp4"), pecas_dir / "peca2.mp4", pecas_dir / "peca3.mp4", it["p4"],
+    ab = abertura(it, tmp("p0.mp4"), pecas_dir) if it.get("com_abertura", True) else 0.0
+    total += ab
+    pecas_ = ([tmp("p0.mp4")] if ab else []) + [tmp("p1.mp4"), pecas_dir / "peca2.mp4", pecas_dir / "peca3.mp4", it["p4"],
               pecas_dir / ("peca5-brasil.mp4" if d["alcance"] == "brasil" else "peca5.mp4"), pecas_dir / "peca6.mp4"]
     lista = tmp("lista.txt")
     lista.write_text("\n".join(f"file '{str(p).replace(chr(92), '/')}'" for p in pecas_), encoding="utf-8")
@@ -172,27 +221,33 @@ def montar_um(it: dict, durs: dict, comum: Path = C.PUB) -> None:
 
     for i in range(6):
         n = add(C.voz_arquivo(VOZES, it["texto"][i]))
-        atraso = round((C.inicio_final(dur, i) + C.ATRASO / C.FPS / C.VEL) * 1000)
+        atraso = round((ab + C.inicio_final(dur, i) + C.ATRASO / C.FPS / C.VEL) * 1000)
         filtros.append(f"[{n}:a]atempo={C.VEL * it['extra'][i]:.4f},adelay={atraso}|{atraso}[v{i}]")
         mix.append(f"[v{i}]")
+    if ab:
+        n = add(C.voz_arquivo(VOZES, it["abertura"]))
+        filtros.append(f"[{n}:a]atempo={C.VEL:.4f},adelay=150|150[vab]")
+        mix.append("[vab]")
     for i in range(3):
         n = add(comum / f"clip{i + 1}.mp4")
         vel, seg = min(1, C.CLIPES[i] / dur[i]), dur[i] / C.FPS / C.VEL
-        atraso = round(C.inicio_final(dur, i) * 1000)
+        atraso = round((ab + C.inicio_final(dur, i)) * 1000)
         filtros.append(f"[{n}:a]atempo={C.VEL * vel:.4f},atrim=0:{seg:.3f},afade=t=in:d=0.5,afade=t=out:st={seg - 0.6:.3f}:d=0.6,"
                        f"volume={C.AMBIENTE},adelay={atraso}|{atraso}[a{i}]")
         mix.append(f"[a{i}]")
     m = add(comum / "musica.mp3")
-    filtros.append(f"[{m}:a]atrim=0:{total:.2f},afade=t=in:d=2,afade=t=out:st={total - 4:.2f}:d=4,volume={C.MUSICA}[mu]")
+    filtros.append(f"[{m}:a]apad,atrim=0:{total:.2f},afade=t=in:d=2,afade=t=out:st={total - 4:.2f}:d=4,volume={C.MUSICA}[mu]")
     mix.append("[mu]")
-    filtros.append(f"{''.join(mix)}amix=inputs={len(mix)}:duration=longest:normalize=0,atrim=0:{total:.3f}[a]")
+    # a música (que vai até o fim) primeiro e duration=first: com longest o amix parava antes quando havia abertura
+    filtros.append("[mu]" + "".join(x for x in mix if x != "[mu]") + f"amix=inputs={len(mix)}:duration=first:normalize=0,atrim=0:{total:.3f}[a]")
     C.ffmpeg(*entradas, "-filter_complex", ";".join(filtros), "-map", "[a]", "-c:a", "aac", "-b:a", "160k", tmp("audio.m4a"))
     it["saida"].parent.mkdir(parents=True, exist_ok=True)
     C.ffmpeg("-i", tmp("video.mp4"), "-i", tmp("audio.m4a"), "-c", "copy", "-shortest", "-movflags", "+faststart", it["saida"])
 
 
-def montar(slugs: list) -> int:
+def montar(slugs: list, com_abertura: bool = True) -> int:
     TMP.mkdir(parents=True, exist_ok=True)
+    import fundo_satelite  # só aqui: precisa do Pillow, que o trabalho da fila (sem fundo_satelite.py) não tem
     durs = json.loads((PECAS / "duracoes.json").read_text(encoding="utf-8"))
     mm = C.carregar()
     itens = []
@@ -206,8 +261,10 @@ def montar(slugs: list) -> int:
         if not foto.exists():
             print(f"  {slug}: falta a foto {foto.name}")
             continue
-        itens.append({"slug": slug, "foto": foto, "saida": SAIDA / f"{slug}.mp4", **r})
-    C.gerar_vozes(VOZES, [*C.FIXAS.values(), C.CORTE_BRASIL, *(t for it in itens for v in it["falas"].values() for t in v)])
+        nome = f"{slug}.mp4" if com_abertura else f"{slug}-sem-abertura.mp4"
+        itens.append({"slug": slug, "foto": foto, "saida": SAIDA / nome, "com_abertura": com_abertura, "credito": fundo_satelite.credito_kit(slug), **r})
+    C.gerar_vozes(VOZES, [*C.FIXAS.values(), C.CORTE_BRASIL, *(t for it in itens for v in it["falas"].values() for t in v),
+                          *(it["abertura"] for it in itens if com_abertura)])
     for it in itens:
         C.encaixa(it, VOZES)
         for i in it["falas"]:
@@ -235,7 +292,7 @@ def main() -> int:
     if a[:1] == ["pecas"]:
         return pecas()
     if a[:1] == ["montar"] and len(a) > 1:
-        return montar(a[1:])
+        return montar([x for x in a[1:] if not x.startswith("--")], "--sem-abertura" not in a)
     print(__doc__)
     return 1
 
