@@ -11,6 +11,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
+import { createRequire } from 'module';
 
 const VIDEO = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));
 const args = process.argv.slice(2);
@@ -18,11 +19,22 @@ const opc = (n, d) => (args.includes(n) ? args[args.indexOf(n) + 1] : d);
 const FILA = (process.env.FILA_URL || 'https://fila-videos.boralula.workers.dev').replace(/\/$/, '');
 // um trabalho ou vários, separados por vírgula: esvaziada a fila de um, segue para o próximo (Gui, 22/10: quem ajuda
 // dispara uma vez só). Padrão: o que a campanha está produzindo agora, na ordem.
-const TRABALHOS = opc('--trabalho', process.env.TRABALHO || 'video-saude,video-mcmv,video-postonovo,video-aposentados,video-inss,video-mercadorose').split(',').map((t) => t.trim()).filter(Boolean);
+const TRABALHOS = opc('--trabalho', process.env.TRABALHO || 'video-saude,video-mcmv,video-postonovo,video-aposentados,video-inss,video-mercadorose,video-merenda,video-cida').split(',').map((t) => t.trim()).filter(Boolean);
 const LIMITE = +opc('--limite', Infinity), LOTE = Math.min(50, +opc('--lote', 10));
 const QUEM = opc('--quem', process.env.AJUDANTE || os.hostname());
 const PROPRIAS = new Set(['--trabalho', '--limite', '--lote', '--quem']);
 const extras = args.filter((a, i) => !PROPRIAS.has(a) && !PROPRIAS.has(args[i - 1])); // --gl, --paralelo... vão para o script
+// os trabalhos em Python chamam o ffmpeg pelo PATH: num PC sem ffmpeg instalado, vale o do pacote ffmpeg-static (npm i)
+try {
+  const estatico = createRequire(import.meta.url)('ffmpeg-static');
+  if (estatico && spawnSync('ffmpeg', ['-version'], { stdio: 'ignore' }).error) process.env.PATH = path.dirname(estatico) + path.delimiter + process.env.PATH;
+} catch { /* sem o pacote: o script avisa se faltar o ffmpeg */ }
+// trabalho em Python (<trabalho>.sh ao lado de <trabalho com _>.py): no Windows sem Git Bash não há bash, então roda o
+// .py direto com o Python que o ajudar.ps1 / ajudar.sh achou (PYTHON); fora do Windows segue pelo .sh
+const pythonDireto = (script) => {
+  const py = path.join(path.dirname(script), path.basename(script, '.sh').replace(/-/g, '_') + '.py');
+  return script.endsWith('.sh') && fs.existsSync(py) && (process.platform === 'win32' || spawnSync('bash', ['--version'], { stdio: 'ignore' }).error) ? py : null;
+};
 for (const t of TRABALHOS) {
   if (!/^[a-z0-9-]+$/.test(t)) { console.error(`nome de trabalho inválido: ${t}`); process.exit(1); }
   if (!['.mjs', '.sh'].some((e) => fs.existsSync(path.join(VIDEO, 'trabalhos', t + e)))) { console.error(`não existe video/trabalhos/${t}.mjs nem .sh`); process.exit(1); }
@@ -85,7 +97,8 @@ while (feitos + falhas < LIMITE) {
 
   // produz o lote inteiro
   const t0 = Date.now();
-  const cmd = script.endsWith('.mjs') ? [process.execPath, [script]] : ['bash', [script]];
+  const py = pythonDireto(script);
+  const cmd = script.endsWith('.mjs') ? [process.execPath, [script]] : py ? [process.env.PYTHON || 'python', [py]] : ['bash', [script]];
   const res = spawnSync(cmd[0], [...cmd[1], ENT, SAI, ...prontos.map((t) => t.slug), ...extras], { cwd: VIDEO, stdio: 'inherit' });
   if (res.status !== 0) console.log(`${path.basename(script)} saiu com ${res.status ?? res.signal}; confiro item por item`);
 

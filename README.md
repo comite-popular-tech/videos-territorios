@@ -92,7 +92,9 @@ O workflow **videos** (aba Actions → videos → Run workflow) põe até 20 má
 de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. **Dispare num
 fork, na sua conta**, nunca neste repositório: o GitHub dá 20 máquinas por conta, e aqui elas seriam as 20 da org
 inteira, deixando o CI dos outros repositórios na fila (aqui o workflow só aceita o kit de exemplo). O campo
-**Trabalho da fila** diz qual vídeo produzir (hoje `video-insulina`). A rodada dura até 5h50 (limite do GitHub); se
+**Trabalho da fila** diz quais vídeos produzir, na ordem: esvaziada a fila de um, a máquina segue para o próximo. Hoje
+o padrão é `video-saude,video-mcmv,video-postonovo,video-aposentados,video-inss,video-mercadorose,video-merenda,video-cida`
+(o mesmo do `ajudar.sh` / `AJUDAR-windows.bat` sem argumentos). A rodada dura até 5h50 (limite do GitHub); se
 ainda houver fila, rode de novo. Com `exemplo` marcado, renderiza só os 4 territórios do kit de exemplo, para teste.
 
 ## Para quem programa
