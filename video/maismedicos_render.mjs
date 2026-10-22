@@ -1,8 +1,10 @@
-// Renderizador do Remotion para "A doutora do posto" (maismedicos.py): um bundle e um navegador para uma lista de cenas,
-// cada uma uma composição Historia de uma cena só (o infográfico), em 720x1280, sem legenda e sem áudio.
+// Renderizador do Remotion em lote, padrão da produção em massa (nasceu no Mais Médicos, serve a qualquer vídeo): um
+// bundle e um navegador para uma lista de cenas, em 720x1280, sem legenda e sem áudio. O bundle fica pronto em
+// kit/<kit>/bundle-<hash do src>/ para os lotes seguintes da mesma máquina.
 //   node video/maismedicos_render.mjs <cenas.json> [--gl angle|swangle] [--conc N]
-// cenas.json: {"raiz": <pasta servida>, "cenas": [{"saida": <mp4>, "dur": <frames>, "info": {...}}]}; nos campos
-// "fundo" do info, "@/<arquivo>" vira o endereço do servidor local sobre a raiz.
+// cenas.json: {"raiz": <pasta servida>, "kit": "video-x" (padrão video-maismedicos), "cenas": [{"saida": <mp4>,
+//   "dur": <frames>, "info": {...}} (uma cena de infográfico na composição Historia) ou {"saida", "id": <composição>,
+//   "props": {...}}]}; em qualquer texto, "@/<arquivo>" vira o endereço do servidor local sobre a raiz.
 import crypto from 'crypto';
 import fs from 'fs';
 import http from 'http';
@@ -26,7 +28,7 @@ await new Promise((ok) => servidor.listen(0, '127.0.0.1', ok));
 const BASE = `http://127.0.0.1:${servidor.address().port}`;
 
 // o bundle fica pronto para os lotes seguintes da mesma máquina (uns 15 s a menos por lote); muda se o src/ mudar
-const KIT = path.join(VIDEO, 'kit', 'video-maismedicos'), vazio = path.join(KIT, 'public-vazio');
+const KIT = path.join(VIDEO, 'kit', lista.kit ?? 'video-maismedicos'), vazio = path.join(KIT, 'public-vazio');
 fs.mkdirSync(vazio, { recursive: true });
 const assinatura = crypto.createHash('sha1');
 for (const f of fs.readdirSync(path.join(VIDEO, 'src')).sort()) assinatura.update(f + fs.readFileSync(path.join(VIDEO, 'src', f)));
@@ -41,9 +43,10 @@ let erros = 0;
 for (const c of lista.cenas) {
   const t0 = Date.now();
   try {
-    const info = { ...c.info, fundo: c.info.fundo.replace(/^@\//, `${BASE}/`) };
-    const props = { cenas: [{ dur: c.dur, legenda: [], info }], trilha: '', entraPrimeira: true };
-    const composition = await selectComposition({ serveUrl, id: 'Historia', inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
+    // "@/<arquivo>" em qualquer texto das props vira o endereço do servidor local sobre a raiz
+    const local = (o) => JSON.parse(JSON.stringify(o).replace(/"@\//g, `"${BASE}/`));
+    const props = c.props ? local(c.props) : { cenas: [{ dur: c.dur, legenda: [], info: local(c.info) }], trilha: '', entraPrimeira: true };
+    const composition = await selectComposition({ serveUrl, id: c.id ?? 'Historia', inputProps: props, puppeteerInstance: browser, logLevel: 'error' });
     await renderMedia({ composition, serveUrl, codec: 'h264', outputLocation: c.saida, inputProps: props, concurrency: +opc('--conc', 4), scale: 720 / 1080, x264Preset: 'veryfast', crf: 16, imageFormat: 'jpeg', puppeteerInstance: browser, logLevel: 'error', timeoutInMilliseconds: 120000 });
     console.log(`  ${path.basename(c.saida)}: ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   } catch (e) {
