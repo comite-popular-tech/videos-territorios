@@ -20,7 +20,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import lugar_falado  # noqa: E402  ("no Capão Redondo", "na Vila Prudente": nunca "no bairro X")
-from maismedicos_comum import inicio_final, tempo_palavra  # noqa: E402,F401
 from pedemeia_comum import (ALT, ATRASO, ENC, ESTADOS, FOLGA, FONTES, FPS, LARG, RESPIRO_FINAL, VEL, VIDEO,  # noqa: E402,F401
                             ass, ffmpeg, filtro_ass, fim_da_fala, gerar_vozes, legenda_de, limpa, voz_arquivo)
 
@@ -136,6 +135,19 @@ def duracoes(pasta_vozes: Path) -> list:
             fala = fim_da_fala(legenda_de(FIXAS[i], pasta_vozes))
         out.append(ATRASO + round(fala * FPS) + FOLGA + (RESPIRO_FINAL if i == 5 else 0))
     return out
+
+
+def inicio_final(dur: list, i: int) -> float:
+    """Segundos, no vídeo final, em que a cena i começa."""
+    return sum(dur[:i]) / FPS / VEL
+
+
+def tempo_palavra(leg: list, alvo: str, depois: float = 0.0, extra: float = 1.0) -> float:
+    """Segundos de render, desde o começo da cena, em que a fala chega na primeira palavra que começa com alvo."""
+    for t, _d, p in leg:
+        if t >= depois and p.lower().strip(".,!?").startswith(alvo.lower()):
+            return ATRASO / FPS + t / extra
+    return ATRASO / FPS + fim_da_fala(leg) / extra
 
 
 def encaixa(it: dict, pasta_vozes: Path) -> None:

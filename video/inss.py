@@ -11,6 +11,7 @@ inss_render.mjs com um bundle só para todas as cenas); os clipes passam só pel
 Entradas em video/public/inss/: clip1-3.mp4 (Flow), musica.mp3 e a foto de cada cidade (<uf>-<cidade>.jpg, a mesma do
 kit da fila em kit-saida/fundos/). Dados: pedidos.json do território (inss_aposentadorias e inss_valor_mensal).
 """
+import hashlib
 import json
 import os
 import subprocess
@@ -20,8 +21,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import inss_comum as C  # noqa: E402
-from maismedicos import AMARELO, FADE, VERMELHO, _estilos, chave, etiqueta  # noqa: E402
+from inss_abertura import AMARELO, VERMELHO, _estilos, etiqueta  # noqa: E402  (cópia própria: não depende do maismedicos.py)
 from pedemeia_comum import _tempo  # noqa: E402
+
+FADE = 5   # frames de render do escurecimento entre as cenas dos clipes
+
+
+def chave(*partes) -> str:
+    return hashlib.sha1(json.dumps(partes, ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:16]
+
 
 KIT = C.VIDEO / "kit" / "video-inss"
 VOZES, TMP, CACHE = KIT / "vozes", KIT / "render", KIT / "cache"
