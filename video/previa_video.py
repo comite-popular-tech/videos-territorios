@@ -1,14 +1,16 @@
-"""Prévia do vídeo na tela do território (cards.boralula.org): um quadro do mp4 cortado em 4:5 no centro, 360 × 450,
-WEBP qualidade 72, como o scripts/acervo.py fazia baixando o começo de cada vídeo do R2 (videos_prontos; ~6 s cada, quase
+"""Prévia do vídeo na tela do território (cards.boralula.org): um quadro do mp4 cortado em 4:5, 360 × 450, WEBP
+qualidade 72, como o scripts/acervo.py fazia baixando o começo de cada vídeo do R2 (videos_prontos; ~6 s cada, quase
 1 h por tipo no PC do Gui). O trabalho da fila grava previa.webp ao lado do mp4 e o ajudar.mjs sobe os dois para
 <prefixo>/<slug>/ no R2, que é onde a página procura; o acervo.py pula quem já tem a prévia lá.
 
   from previa_video import previa; previa(mp4, fim_abertura)   # trabalhos em Python
   python video/previa_video.py <mp4> <fim da abertura em s>     # trabalhos em Node (video-insulina.mjs)
 
-O quadro é o de 0,25 s antes do fim da abertura padrão (abertura.py e as cópias dos outros vídeos): o cartão inteiro,
-com ATENÇÃO, MORADOR DO <BAIRRO>, a etiqueta "Cidade - UF", o selo e o ENTENDA POR QUÊ. Um tempo fixo não serve: o
-selo entra quando a voz diz o nome do programa, e com nome comprido (São Salvador do Tocantins) a 3,0 s ainda não entrou.
+Prévia sem texto (Gui, 22/10): "cena uns segundos depois da abertura, cortada acima da legenda". O quadro é o de 3 s
+depois do fim da abertura padrão (abertura.py e as cópias dos outros vídeos), já no meio da 1ª cena: a abertura (ATENÇÃO,
+MORADOR DO <BAIRRO>, selo) muda de duração com o nome do lugar, e a 1ª cena dura de 4,5 s (merenda) a 8 s. O corte 4:5
+começa em y = 40 e termina em 940, acima da legenda karaokê (y 955 a 1025 no 720 × 1280), que aparece quase o tempo todo.
+O scripts/acervo.py usa o mesmo corte (TOPO) nos vídeos que não gravam a prévia na fila.
 
 Não importa nada do video/ (o INSS parou em produção quando o maismedicos.py mudou): só o ffmpeg (o do FFMPEG no ambiente,
 que a insulina passa quando usa o ffmpeg-static, ou o do PATH), com libwebp, ou o Pillow quando o ffmpeg não tem. Nunca derruba o vídeo: sem prévia, o acervo.py faz como antes. E prévia com menos de
@@ -23,19 +25,19 @@ from pathlib import Path
 
 FFMPEG = os.environ.get("FFMPEG") or shutil.which("ffmpeg") or "ffmpeg"
 LARG, ALT, QUALIDADE = 360, 450, 72
-ANTES_DO_FIM = 0.25     # s antes do corte para a história: o ENTENDA POR QUÊ já terminou de entrar (anima 0,16 s)
-SEM_ABERTURA = 3.0      # vídeo sem a abertura (não acontece na fila)
+DEPOIS_DA_ABERTURA = 3.0    # s depois do corte para a história: meio da 1ª cena, sem o cartão da abertura
+TOPO = 40                   # y do corte 4:5 no 720 × 1280: termina em 940, acima da legenda (955 a 1025)
 TAM_MIN = 1000
 
 
-def previa(mp4, fim_abertura: float | None) -> Path | None:
-    """Grava previa.webp na pasta do mp4; devolve o caminho, ou None se não deu (o motivo vai para a saída)."""
-    mp4 = Path(mp4)
-    destino = mp4.with_name("previa.webp")
-    t = max(0.0, fim_abertura - ANTES_DO_FIM) if fim_abertura else SEM_ABERTURA
-    # o mesmo corte do acervo.py: altura = largura × 5/4, no meio (720 × 1280 -> 720 × 900, de y = 190)
+def previa(mp4, fim_abertura: float | None, destino=None) -> Path | None:
+    """Grava previa.webp na pasta do mp4 (ou em destino; mp4 pode ser uma URL); devolve o caminho, ou None se não deu
+    (o motivo vai para a saída)."""
+    destino = Path(destino) if destino else Path(mp4).with_name("previa.webp")
+    t = (fim_abertura or 0.0) + DEPOIS_DA_ABERTURA
+    # altura = largura × 5/4 a partir de TOPO (720 × 1280 -> 720 × 900, de y = 40 a 940)
     base = [FFMPEG, "-y", "-v", "error", "-ss", f"{t:.3f}", "-i", str(mp4), "-frames:v", "1",
-            "-vf", f"crop=iw:iw*5/4,scale={LARG}:{ALT}:flags=lanczos"]
+            "-vf", f"crop=iw:iw*5/4:0:{TOPO},scale={LARG}:{ALT}:flags=lanczos"]
     try:
         r = subprocess.run([*base, "-c:v", "libwebp", "-quality", str(QUALIDADE), str(destino)], capture_output=True, timeout=60)
         if r.returncode or not destino.exists():
@@ -50,7 +52,7 @@ def previa(mp4, fim_abertura: float | None) -> Path | None:
         return destino
     except Exception as e:  # noqa: BLE001
         destino.unlink(missing_ok=True)
-        print(f"  {mp4.parent.name}: sem a prévia ({e})")
+        print(f"  {destino.parent.name}: sem a prévia ({e})")
         return None
 
 
