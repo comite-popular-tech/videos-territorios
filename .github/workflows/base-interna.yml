@@ -11,7 +11,7 @@ on:
         description: "UFs separadas por espaço (vazio = todas)"
         default: ""
       so:
-        description: "materiais (vazio = todos, os novos primeiro): inss,mercadorose,merenda,cida,insulina,pedemeia,maismedicos,posto,postonovo,mcmv,escola,saude"
+        description: "materiais (vazio = todos, os novos primeiro): inss,mercadorose,merenda,cida,insulina,pedemeia,maismedicos,posto,postonovo,mcmv,escola,saude,aposentados"
         default: ""
       paralelo:
         description: "quantos jobs ao mesmo tempo"

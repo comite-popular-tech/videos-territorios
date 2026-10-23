@@ -58,8 +58,11 @@ MATERIAIS = {
     "escola": ("1_Educação/Vídeo", "Merenda da Pré-escola", "video-escola/{slug}/escola.mp4"),
     # o de Saúde já está em Conteúdo por cidade (espelho_drive.py): aqui vai um atalho para ele, sem ocupar cota
     "saude": ("2_Saúde/Vídeo", "Alerta Saúde SUS", "video-saude/{slug}/saude.mp4"),
+    # alerta dos Aposentados: um por município, no slug da cidade ou, na cidade grande, no do primeiro bairro (o do site)
+    "aposentados": ("3_Aposentados/Vídeo", "Aposentados", "video-aposentados/{slug}/aposentados.mp4"),
 }
 ATALHO_PARA_CIDADES = {"saude"}
+MUNICIPAIS = {"aposentados"}
 # os 1.340 territórios por bairro de 22/10 (cidades de 500 mil+): --fase cidades deixa para depois, --fase bairros só eles
 BAIRROS_NOVOS = set(json.loads((Path(__file__).resolve().parent / "bairros_novos.json").read_text(encoding="utf-8")))
 
@@ -85,7 +88,15 @@ def executar(cid, rc, so, simular, fase=None):
     ja = {i["Path"][len(base) + 1:]: i["Size"] for i in rc.listar(base) if not i["IsDir"]}
     nomes = rotulos(cid[5])                                # o número do bairro repetido vem da cidade inteira
     pedidos = [(m, f"{MATERIAIS[m][0]}/{nome_do_arquivo(m, nomes[t[0]])}", f"{FILA}/{MATERIAIS[m][2].format(slug=t[0])}")
-               for m in so for t in terrs if t[0] not in FORA_DO_AR.get(m, ())]
+               for m in so if m not in MUNICIPAIS for t in terrs if t[0] not in FORA_DO_AR.get(m, ())]
+    if fase != "bairros":                                  # o municipal vale para a cidade inteira: um arquivo, sem bairro
+        for m in so:
+            if m not in MUNICIPAIS: continue
+            for s in [cid[0]] + [t[0] for t in cid[5]]:
+                url = f"{FILA}/{MATERIAIS[m][2].format(slug=s)}"
+                if s not in FORA_DO_AR.get(m, ()) and tamanho_no_r2(url) is not None:
+                    pedidos.append((m, f"{MATERIAIS[m][0]}/{nome_do_arquivo(m, '')}", url))
+                    break
     na_cidade = {}
     if any(m in ATALHO_PARA_CIDADES for m, _, _ in pedidos):
         pasta = f"{CIDADES}/{cid[2]}/{cid[1]}/Vídeo"
