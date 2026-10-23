@@ -25,7 +25,7 @@ on:
         default: false
 jobs:
   ufs:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     outputs:
       lista: ${{ steps.l.outputs.lista }}
     steps:
@@ -38,7 +38,7 @@ jobs:
           echo "lista=$(printf '%s\n' $l | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
   base:
     needs: ufs
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 360
     strategy:
       fail-fast: false
@@ -70,7 +70,7 @@ jobs:
     # no fim, junta as pastas de mesmo nome (dedupe por nome junta as pastas; o modo skip só apaga arquivo idêntico repetido)
     needs: base
     if: ${{ always() && !inputs.simular }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     steps:
       - name: rclone
         run: curl -fsSL https://rclone.org/install.sh | sudo bash

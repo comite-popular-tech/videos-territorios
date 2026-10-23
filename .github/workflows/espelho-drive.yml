@@ -22,7 +22,7 @@ on:
         default: false
 jobs:
   ufs:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     outputs:
       lista: ${{ steps.l.outputs.lista }}
     steps:
@@ -36,7 +36,7 @@ jobs:
           echo "lista=$(printf '%s\n' $l | jq -R . | jq -sc .)" >> "$GITHUB_OUTPUT"
   espelho:
     needs: ufs
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 360
     strategy:
       fail-fast: false

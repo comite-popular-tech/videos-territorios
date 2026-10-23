@@ -1,7 +1,9 @@
-# Renderiza os vídeos de Saúde (video/) em várias máquinas do GitHub Actions ao mesmo tempo.
-# Dispare em Actions → videos → Run workflow **num fork** (conta pessoal ou org só sua): o limite de 20 máquinas do
-# plano Free é por conta, e rodar aqui ocupa as 20 da org e trava o CI dos outros repositórios. Neste repositório o
-# render recusa rodar; só o kit de exemplo é permitido, para testar o workflow. Cada máquina roda video/ajudar.sh, que
+# Renderiza os vídeos de Saúde (video/) em várias máquinas ao mesmo tempo.
+# Com a variável RUNNER=gcp (Settings → Secrets and variables → Actions → Variables) os jobs rodam no runner
+# próprio no GCP e o render pode rodar na org; sem ela, caem no runner do GitHub e segue a regra antiga: dispare
+# em Actions → videos → Run workflow **num fork** (conta pessoal ou org só sua): o limite de 20 máquinas do
+# plano Free é por conta, e rodar aqui ocupa as 20 da org e trava o CI dos outros repositórios. Sem RUNNER, neste
+# repositório o render recusa rodar; só o kit de exemplo é permitido, para testar o workflow. Cada máquina roda video/ajudar.sh, que
 # pede lotes de territórios à fila (Worker público, entrada fila_url), renderiza e sobe os MP4. Com `trabalho` vazio,
 # segue a lista viva da fila: trabalho ou item novo que a coordenação puser entra sem disparar de novo, e código novo
 # chega sozinho entre um lote e outro; a máquina para depois de `esperar` minutos sem nada na fila. Com `exemplo`
@@ -12,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       jobs:
-        description: 'Máquinas em paralelo (o GitHub dá até 20)'
+        description: 'Máquinas em paralelo (o GitHub dá até 20; no runner próprio, o tamanho do pool)'
         type: number
         default: 20
       limite:
@@ -50,9 +52,10 @@ permissions:
 
 jobs:
   matriz:
-    runs-on: ubuntu-latest
-    # Na org, só o kit de exemplo: o render de verdade ocuparia as 20 máquinas da comite-popular-tech inteira.
-    if: inputs.exemplo || github.repository_owner != 'comite-popular-tech'
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
+    # Sem runner próprio (vars.RUNNER vazio), na org só roda o kit de exemplo: o render de verdade ocuparia
+    # as 20 máquinas do GitHub da comite-popular-tech inteira.
+    if: inputs.exemplo || github.repository_owner != 'comite-popular-tech' || vars.RUNNER != ''
     outputs:
       lista: ${{ steps.m.outputs.lista }}
     steps:
@@ -61,7 +64,7 @@ jobs:
 
   render:
     needs: matriz
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 350   # o Actions corta em 6 h
     strategy:
       fail-fast: false
