@@ -29,7 +29,7 @@ NA = {"vila", "cidade", "comunidade", "colonia", "chacara", "fazenda", "granja",
       "se", "paz", "liberdade", "uniao", "vitoria", "gloria", "cohatrac", "terra", "varginha", "campina", "restinga", "invernada"}
 # masculinos terminados em -a que o povo diz com "no" (o resto em -a sem artigo conhecido vai com "em", que não erra)
 NO_A = {"ipiranga", "itaquera", "jurunas", "guajuviras", "janga", "jaguare", "tatuape", "jabaquara", "panorama",
-        "planalto", "jacuecanga", "mathias", "canafistula", "cosmorama"}
+        "planalto", "jacuecanga", "mathias", "canafistula", "cosmorama", "bras"}
 EM = {"sao", "santo", "santos", "nossa", "tres", "santana", "nazare", "fatima", "brasilia", "copacabana", "cajazeiras",
       "itaporanga", "itapua", "paripe", "cumbuco", "papicu", "camacari", "valparaiso", "bonsucesso", "limoeiro"}
 NOS = {"campos", "sitios", "altos", "jardins", "coqueiros", "bairros"}
@@ -51,8 +51,11 @@ def _sem(s: str) -> str:
 def no_lugar(bairro: str):
     """'no X' / 'na X' / 'em X' / 'nos X' / 'nas X' / 'na zona rural'; None se o nome não dá para falar."""
     b = " ".join(str(bairro or "").split())
-    if len(b) >= 20:
-        return None   # o CNES corta o bairro em 20 letras ("Distrito de Aparecid"): nome cortado não se fala
+    if len(b) == 20:
+        return None   # o CNES corta o bairro em 20 letras ("Distrito de Aparecid"): nome cortado não se fala. Mais longo
+        #               não é do CNES (bairro oficial do IBGE, "Recreio dos Bandeirantes"; 2026-10-22) e se fala inteiro
+    # na fala, sem o parêntese do IBGE ("Freguesia (Jacarepaguá)" → "na Freguesia") e com "e" no lugar da barra
+    b = re.sub(r"\s*\([^)]*\)", "", b).replace(" / ", " e ").strip()
     if RURAL.match(_sem(b)):
         return "na zona rural"
     b = FIM_NUMERO.sub("", b).strip()
@@ -78,6 +81,8 @@ def no_lugar(bairro: str):
         return f"na {b}"
     if p.endswith(("a", "as")) and p not in NO_A:
         return f"em {b}"   # nome próprio em -a sem artigo conhecido ("em Goiânia", "em Campinas"): "no" ou "na" podiam errar
+    if p.endswith(("os", "es", "is", "us")):
+        return f"em {b}"   # plural sem artigo conhecido (2026-10-22, distritos de SP): "em Pinheiros", "em Perdizes", "em Ramos"
     return f"no {b}"
 
 
@@ -99,6 +104,12 @@ def de_cidade(cidade: str) -> str:
     """'de São Paulo', 'do Rio de Janeiro'."""
     art = CIDADE_COM_ARTIGO.get(cidade)
     return f"{'do' if art == 'o' else 'da'} {cidade}" if art else f"de {cidade}"
+
+
+def em_cidade(cidade: str) -> str:
+    """'em São Paulo', 'no Rio de Janeiro', 'no Recife' ("aqui no Rio de Janeiro"; saía "aqui em Rio de Janeiro")."""
+    art = CIDADE_COM_ARTIGO.get(cidade)
+    return f"{'no' if art == 'o' else 'na'} {cidade}" if art else f"em {cidade}"
 
 
 def confere(texto: str) -> str:

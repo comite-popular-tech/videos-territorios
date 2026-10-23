@@ -11,7 +11,23 @@ export const RAIZ = path.resolve(path.dirname(new URL(import.meta.url).pathname.
 export const dadosRel = () => (process.env.VIDEO_DADOS ? process.env.VIDEO_DADOS.replace(/\/?$/, '/') : '');
 const D = (p) => path.join(RAIZ, dadosRel(), p);
 const ler = (p) => JSON.parse(fs.readFileSync(D(p), 'utf8'));
-let FOTOS, FALADOS;
+let FOTOS, FALADOS, LUGAR;
+
+// Bairro e cidade como o povo fala (regra do Gui, 21/10: nunca "bairro X"): { no: 'na Maré', do: 'da Maré', de: 'do Rio de
+// Janeiro', em: 'no Rio de Janeiro' }, pela tabela video/lugar_falado.json (`python video/lugar_falado.py --json`). Bairro
+// fora da tabela é nome que não se fala (cortado pelo CNES, abreviado): no e do vêm vazios e a fala fica só com a cidade.
+export function lugarFalado(bairro, cidade) {
+  const arq = path.join(RAIZ, 'video/lugar_falado.json');
+  LUGAR ??= fs.existsSync(arq) ? JSON.parse(fs.readFileSync(arq, 'utf8')) : { bairros: {}, cidades: {} };
+  const [no, doB] = (bairro && LUGAR.bairros[bairro]) || [];
+  const de = LUGAR.cidades[cidade] ?? `de ${cidade}`;
+  return { no, do: doB, de, em: de.replace(/^de /, 'em ').replace(/^d([oa]) /, 'n$1 ') };
+}
+
+// Fecho da tela com a mesma preposição da fala: "COMPARTILHE COM QUEM USA O SUS NA" + "MARÉ" (antes "NO BAIRRO MARÉ").
+export function fechoFalado(lf, texto, bairro, cidade) {
+  return { fecho: `${texto} ${(lf.no || lf.em).split(' ')[0].toUpperCase()}`, fechoDestaque: lf.no ? bairro : cidade };
+}
 
 export const limpa = (s) => String(s ?? '').replace(/ /g, ' ');
 
@@ -81,12 +97,13 @@ export function dadosCidade(slug) {
   const emRisco = generica
     ? ubs === 1 ? `O posto de saúde de ${cidade} está em risco.` : `Os postos de saúde de ${cidade} estão em risco.`
     : `${Art} ${unidadeFalada} está em risco.`;
+  const lf = lugarFalado(bairro, cidade);
   const falas = [
-    bairro ? `Alerta na saúde do bairro ${bairro}, em ${cidade}.` : `Alerta na saúde de ${cidade}.`,
+    lf.do ? `Alerta na saúde ${lf.do}, ${lf.em}.` : `Alerta na saúde ${lf.de}.`,
     repasse,
     `Bolsonaro já tentou cortar 59 por cento da Farmácia Popular, que dá remédio de graça.`,
     `Flávio Bolsonaro planeja cortar até 250 bilhões de reais. ${emRisco}`,
-    bairro ? `Compartilhe com quem usa o SUS no bairro ${bairro}.` : `Compartilhe com quem usa o SUS em ${cidade}.`,
+    lf.no ? `Compartilhe com quem usa o SUS ${lf.no}.` : `Compartilhe com quem usa o SUS ${lf.em}.`,
   ];
   const props = {
     cidade,
@@ -103,6 +120,7 @@ export function dadosCidade(slug) {
     unidade,
     fonte: `${limpa(p1.data.fonte)} · Corte: plano de ajuste fiscal de Flávio Bolsonaro, até R$ 250 bi (Folha de S.Paulo, out/2026)`,
     trilha: 'trilha.wav',
+    ...fechoFalado(lf, 'COMPARTILHE COM QUEM USA O SUS', bairro, cidade),
   };
   return { slug, props, falas, fundo, arquivoFundo, cs };
 }

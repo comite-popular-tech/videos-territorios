@@ -83,6 +83,7 @@ def limpa(s) -> str:
 
 def roteiro(ped: dict, slug: str, pdm: dict, escolas: dict) -> dict:
     """As três falas que mudam, cada uma com as versões mais curtas para quando a cheia não cabe, e o dado da cena 3."""
+    import lugar_falado   # "no Capão Redondo", "na Vila Prudente": nunca "no bairro X" (Gui, 21/10)
     nomes = ped.get("nomes") or {}
     cidade, uf, ibge = limpa(ped["municipio"]["municipio"]), ped["municipio"]["uf"], str(ped["municipio"]["cod_ibge"])
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
@@ -90,20 +91,19 @@ def roteiro(ped: dict, slug: str, pdm: dict, escolas: dict) -> dict:
     do_estado = not est
     if do_estado:
         est, valor = pdm["ufs"][uf]
-    onde = ESTADOS[uf][0] if do_estado else f"Aqui em {cidade}"
+    onde = ESTADOS[uf][0] if do_estado else f"Aqui {lugar_falado.em_cidade(cidade)}"
     quem = "1 estudante já recebeu" if est == 1 else f"{falado(est)} estudantes já receberam"
     quem_curto = "1 estudante recebe" if est == 1 else f"{falado(est)} estudantes recebem"
     escola = escolas.get(slug, "")
     fim_cheio, fim_curto = "e quase deixou a escola pra fazer uns bicos e ajudar em casa.", "e quase deixou a escola pra fazer bico."
-    import lugar_falado   # "no Capão Redondo", "na Vila Prudente": nunca "no bairro X" (Gui, 21/10)
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)
     if no_bairro:
-        f0 = [f"O Lucas tem 16 anos, mora {no_bairro}, aqui em {cidade}, {fim_cheio}",
-              f"O Lucas tem 16 anos, mora {no_bairro}, aqui em {cidade}, {fim_curto}",
-              f"O Lucas tem 16 anos, mora aqui em {cidade}, {fim_curto}"]
+        f0 = [f"O Lucas tem 16 anos, mora {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}, {fim_cheio}",
+              f"O Lucas tem 16 anos, mora {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}, {fim_curto}",
+              f"O Lucas tem 16 anos, mora aqui {lugar_falado.em_cidade(cidade)}, {fim_curto}"]
     else:
-        f0 = [f"O Lucas tem 16 anos, mora aqui em {cidade}, {fim_cheio}",
-              f"O Lucas tem 16 anos, mora aqui em {cidade}, {fim_curto}",
+        f0 = [f"O Lucas tem 16 anos, mora aqui {lugar_falado.em_cidade(cidade)}, {fim_cheio}",
+              f"O Lucas tem 16 anos, mora aqui {lugar_falado.em_cidade(cidade)}, {fim_curto}",
               f"O Lucas tem 16 anos {fim_curto}"]
     generica = ["Mas continuou estudando. E agora, todo mês que mantém a frequência na escola, o Pé-de-Meia cai na conta.",
                 "Mas continuou estudando. E todo mês que vai à aula, o Pé-de-Meia cai na conta."]

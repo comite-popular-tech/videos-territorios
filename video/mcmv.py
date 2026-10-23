@@ -23,6 +23,7 @@ import collections
 import csv
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -81,7 +82,10 @@ def falado(n: int) -> str:
 
 
 def casas(n: int) -> str:
-    return "1 casa" if n == 1 else f"{falado(n)} casas"
+    """"mil e quinhentas casas" (o falado do Mais Médicos é masculino: "mil e quinhentos médicos")."""
+    if n == 1:
+        return "1 casa"
+    return re.sub(r"\b(duz|trez|quatroc|quinh|seisc|setec|oitoc|novec)entos\b", r"\1entas", falado(n)) + " casas"
 
 
 def roteiro(ped: dict, dd: dict) -> dict:
@@ -90,11 +94,11 @@ def roteiro(ped: dict, dd: dict) -> dict:
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
     resto = "Um cômodo só, com os dois filhos."
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
-    f0 = ([f"A Dona Marta morava de aluguel {no_bairro}, aqui em {cidade}. {resto}"] if no_bairro else []) + \
-         [f"A Dona Marta morava de aluguel aqui em {cidade}. {resto}", f"A Dona Marta morava de aluguel aqui em {cidade}. Um cômodo só."]
+    f0 = ([f"A Dona Marta morava de aluguel {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}. {resto}"] if no_bairro else []) + \
+         [f"A Dona Marta morava de aluguel aqui {lugar_falado.em_cidade(cidade)}. {resto}", f"A Dona Marta morava de aluguel aqui {lugar_falado.em_cidade(cidade)}. Um cômodo só."]
     antes, agora = dd["municipios"].get(ibge, [0, 0])
     if agora > 0 and antes == 0:
-        alcance, onde, rotulo = "cidade", (f"Aqui na cidade de {cidade}" if cidade == NOMES_UF[uf] else f"Aqui em {cidade}"), f"{cidade} - {uf}"
+        alcance, onde, rotulo = "cidade", (f"Aqui na cidade {lugar_falado.de_cidade(cidade)}" if cidade == NOMES_UF[uf] else f"Aqui {lugar_falado.em_cidade(cidade)}"), f"{cidade} - {uf}"
     elif dd["ufs"][uf][0] == 0:
         alcance, onde, rotulo = "estado", ESTADOS[uf][0], NOMES_UF[uf]
         antes, agora = dd["ufs"][uf]

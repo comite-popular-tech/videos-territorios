@@ -54,31 +54,39 @@ export function reais(v) {
 }
 
 // Falas variáveis (índice da cena, 0 a 8), cada uma com versões mais curtas para quando a cheia não cabe na janela.
-// Lugar sempre com "aqui em <cidade>" (bairro acompanhado da cidade), como o Gui pediu em 21/10.
+// Lugar sempre com "aqui em <cidade>" (bairro acompanhado da cidade), como o Gui pediu em 21/10. Bairro e cidade com o artigo
+// do povo pela tabela do video/lugar_falado.py --json ("Na Maré, aqui no Rio de Janeiro"; nunca "No bairro Maré", 22/10);
+// bairro fora da tabela (nome que não se fala) fica só com a cidade.
+let LUGAR;
+const emCidade = (c) => (LUGAR.cidades[c] ?? `de ${c}`).replace(/^de /, 'em ').replace(/^d([oa]) /, 'n$1 ');
+const maiuscula = (s) => s[0].toUpperCase() + s.slice(1);
 export function roteiro(ped) {
+  LUGAR ??= JSON.parse(fs.readFileSync(path.join(I.VIDEO, 'lugar_falado.json'), 'utf8'));
   const nomes = ped.nomes ?? {};
   const cidade = limpa(ped.municipio.municipio);
   const aps = +ped.numeros?.aps;
   if (!aps) throw new Error('sem repasse da atenção primária');
-  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
+  const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro).split(/\s+/).join(' ') : '';
+  const [noBairro] = (bairro && LUGAR.bairros[bairro]) || [];
+  const aqui = `aqui ${emCidade(cidade)}`, Aqui = `Aqui ${emCidade(cidade)}`;
   let unidade = nomes.saude_generica ? '' : limpa(nomes.saude_completo);
   unidade = FALADOS[unidade] ?? unidade;
   // UBS, AMA, USF, Unidade, Clínica... femininas; Posto, Centro, PA, Ambulatório masculinos
-  const art = /^(posto|centro|pa|ambulatório|cs|psf|caps|cais)(\s|$)/i.test(unidade) ? 'o' : 'a';
+  const art = /^(posto|centro|pa|ambulatório|cs|cms|psf|caps|cais)(\s|$)/i.test(unidade) ? 'o' : 'a';
   const ano = '2027, primeiro ano do governo Flávio Bolsonaro.';
   const cafe = 'toda terça, a agente de saúde Rosângela tomava café com a Dona Cida.';
   const corte = 'Até que o governo cortou o dinheiro dos postos de saúde.';
   const nao = 'Essa história ainda não aconteceu.';
   return {
-    0: bairro
-      ? [`${ano} No bairro ${bairro}, aqui em ${cidade}, ${cafe}`, `${ano} No ${bairro}, aqui em ${cidade}, ${cafe}`, `${ano} Aqui em ${cidade}, ${cafe}`]
-      : [`${ano} Aqui em ${cidade}, ${cafe}`, `${ano} Aqui, ${cafe}`],
+    0: noBairro
+      ? [`${ano} ${maiuscula(noBairro)}, ${aqui}, ${cafe}`, `${ano} ${Aqui}, ${cafe}`]
+      : [`${ano} ${Aqui}, ${cafe}`, `${ano} Aqui, ${cafe}`],
     1: [...(unidade ? [`${corte} E ${art} ${unidade} fechou.`] : []), `${corte} E o posto de saúde fechou.`],
-    7: [`Quem cortou o dinheiro tem nome: Flávio Bolsonaro. Aqui em ${cidade}, os postos de saúde podem perder ${reais(aps)} por ano.`,
-      `Quem cortou tem nome: Flávio Bolsonaro. Aqui em ${cidade}, os postos podem perder ${reais(aps)} por ano.`,
+    7: [`Quem cortou o dinheiro tem nome: Flávio Bolsonaro. ${Aqui}, os postos de saúde podem perder ${reais(aps)} por ano.`,
+      `Quem cortou tem nome: Flávio Bolsonaro. ${Aqui}, os postos podem perder ${reais(aps)} por ano.`,
       `Quem cortou tem nome: Flávio Bolsonaro. Aqui, os postos podem perder ${reais(aps)} por ano.`],
-    8: bairro
-      ? [`${nao} No bairro ${bairro}, aqui em ${cidade}, ela ainda pode ter outro final.`, `${nao} No ${bairro}, aqui em ${cidade}, ela ainda pode ter outro final.`, `${nao} Aqui em ${cidade}, ela ainda pode ter outro final.`]
-      : [`${nao} Aqui em ${cidade}, ela ainda pode ter outro final.`, `${nao} Aqui, ela ainda pode ter outro final.`],
+    8: noBairro
+      ? [`${nao} ${maiuscula(noBairro)}, ${aqui}, ela ainda pode ter outro final.`, `${nao} ${Aqui}, ela ainda pode ter outro final.`]
+      : [`${nao} ${Aqui}, ela ainda pode ter outro final.`, `${nao} Aqui, ela ainda pode ter outro final.`],
   };
 }

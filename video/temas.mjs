@@ -2,7 +2,7 @@
 // Saúde: { slug, props, falas[5], fundo, arquivoFundo, cs } ou { slug, erro }. Mesmos números e nomes dos cards p3
 // (educação infantil) e p5 (aposentados) do acervo. Aposentados é dado da cidade: o vídeo de um bairro fala da cidade.
 import fs from 'fs';
-import { RAIZ, dadosRel, falado, fundoCidade, limpa } from './cidade.mjs';
+import { RAIZ, dadosRel, falado, fechoFalado, fundoCidade, limpa, lugarFalado } from './cidade.mjs';
 import path from 'path';
 
 const CORTE = 'Corte: plano de ajuste fiscal de Flávio Bolsonaro, até R$ 250 bi (Folha de S.Paulo, out/2026)';
@@ -47,20 +47,21 @@ export function dadosEscola(slug) {
   const { crian, turmas, docentes } = ped.numeros;
   if (!escola || !crian) return { slug, erro: 'sem escola ou matrículas' };
   // "no bairro Parque Regina", "no Centro": o mesmo trecho do card
-  const onde = limpa(card.data.corpo).replace(/\*\*/g, '').match(new RegExp(`${escola.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, (n[oa]s? [^,]+), está na mira`))?.[1] ?? '';
+  const onde = limpa(card.data.corpo).replace(/\*\*/g, '').match(new RegExp(`${escola.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}, ((?:n[oa]s?|em) [^,]+), está na mira`))?.[1] ?? '';
   const bairro = nomes.regra === 'pares' ? limpa(nomes.bairro) : '';
+  const lf = lugarFalado(bairro, cidade);   // "da Maré, no Rio de Janeiro", nunca "do bairro Maré" (Gui, 21/10)
   const falas = [
-    bairro ? `Alerta na educação infantil do bairro ${bairro}, em ${cidade}.` : `Alerta na educação infantil de ${cidade}.`,
+    lf.do ? `Alerta na educação infantil ${lf.do}, ${lf.em}.` : `Alerta na educação infantil ${lf.de}.`,
     `Na ${escola}${onde ? `, ${onde}` : ''}, são ${crian} crianças na pré-escola${turmas ? `, em ${turmas} ${turmas === 1 ? 'turma' : 'turmas'}` : ''}.`,
     'Bolsonaro já vetou o reajuste da merenda escolar em 2022.',
     `Flávio Bolsonaro planeja cortar até 250 bilhões de reais. A merenda da ${escola} está em risco.`,
-    bairro ? `Compartilhe com quem tem filho na escola no bairro ${bairro}.` : `Compartilhe com quem tem filho na escola em ${cidade}.`,
+    `Compartilhe com quem tem filho na escola ${lf.no || lf.em}.`,
   ];
   const props = {
     cidade, uf: b.uf, bairro, foto: b.arquivoFundo, fundo: b.fundo, fotoCredito: b.fotoCredito,
     valorAno: 0, ubs: 0, artigo: 'a', unidade: '',
     alerta: 'ALERTA · EDUCAÇÃO',
-    fecho: `COMPARTILHE COM QUEM TEM FILHO NA ESCOLA ${bairro ? 'NO BAIRRO' : 'EM'}`,
+    ...fechoFalado(lf, 'COMPARTILHE COM QUEM TEM FILHO NA ESCOLA', bairro, cidade),
     manchete: limpa(card.data.manchete).split('\n'),
     escola, escolaOnde: onde, criancas: crian, turmas, docentes,
     fonte: `${limpa(card.data.fonte)} · ${CORTE}`,

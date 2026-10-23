@@ -51,6 +51,7 @@ function falado(v) {
 // do video/lugar_falado.py --json; bairro fora dela (nome que não se fala) usa a versão só com a cidade.
 const LUGAR = JSON.parse(fs.readFileSync(path.join(C.VIDEO, 'lugar_falado.json'), 'utf8'));
 const deCidade = (c) => LUGAR.cidades[c] ?? `de ${c}`;
+const emCidade = (c) => deCidade(c).replace(/^de /, 'em ').replace(/^d([oa]) /, 'n$1 ');   // "aqui no Rio de Janeiro"
 const confere = (t) => { if (/\bbairro\s+[A-ZÀ-Ý]/.test(t)) throw new Error(`fala com "bairro X": ${t}`); return t; };
 
 // Falas variáveis, cada uma com as versões mais curtas para quando a cheia não cabe na janela da cena
@@ -62,14 +63,14 @@ function roteiro(d, slug) {
   const [atend, pop] = FP.municipios[ibge] ?? [0, 0];
   const doEstado = !atend;
   const [a, p] = doEstado ? FP.ufs[uf] : [atend, pop];
-  const onde = doEstado ? ESTADOS[uf][0] : `Aqui em ${cidade}`;
+  const onde = doEstado ? ESTADOS[uf][0] : `Aqui ${emCidade(cidade)}`;
   const quem = a === 1 ? '1 pessoa pegou' : `${falado(a)} pessoas pegaram`;
   const fim = ' Tem diabetes e usa insulina todo dia.';
   const abertura = `Atenção, morador ${doBairro ?? deCidade(cidade)}: a Farmácia Popular está ameaçada. Entenda por quê.`;
   const r = {
     falas: {
-      0: noBairro ? [`Seu Raimundo mora ${noBairro}, aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui em ${cidade}.${fim}`]
-        : [`Seu Raimundo mora aqui em ${cidade}.${fim}`, `Seu Raimundo mora aqui.${fim}`],
+      0: noBairro ? [`Seu Raimundo mora ${noBairro}, aqui ${emCidade(cidade)}.${fim}`, `Seu Raimundo mora aqui ${emCidade(cidade)}.${fim}`]
+        : [`Seu Raimundo mora aqui ${emCidade(cidade)}.${fim}`, `Seu Raimundo mora aqui.${fim}`],
       1: [...(RUA[slug] ? [`Todo mês ele pega a insulina na farmácia ${RUA[slug]}. E não paga nada.`] : []), 'Todo mês ele pega a insulina na farmácia. E não paga nada.'],
       3: [`${onde}, ${quem} remédio de graça ${doEstado ? 'pela Farmácia Popular' : 'assim'} só em ${FP.mes}.`, `${onde}, ${quem} remédio de graça em ${FP.mes}.`],
     },

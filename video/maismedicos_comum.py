@@ -69,14 +69,14 @@ def roteiro(ped: dict, mm: dict) -> dict:
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
     longo, curto = "Todo mês ele se consulta no posto de saúde com a doutora Ana.", "Todo mês ele vê a doutora Ana no posto."
     if no_bairro:
-        f0 = [f"Seu Raimundo mora {no_bairro}, aqui em {cidade}. {longo}",
-              f"Seu Raimundo mora {no_bairro}, aqui em {cidade}. {curto}",
-              f"Seu Raimundo mora aqui em {cidade}. {curto}"]
+        f0 = [f"Seu Raimundo mora {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}. {longo}",
+              f"Seu Raimundo mora {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}. {curto}",
+              f"Seu Raimundo mora aqui {lugar_falado.em_cidade(cidade)}. {curto}"]
     else:
-        f0 = [f"Seu Raimundo mora aqui em {cidade}. {longo}", f"Seu Raimundo mora aqui em {cidade}. {curto}"]
+        f0 = [f"Seu Raimundo mora aqui {lugar_falado.em_cidade(cidade)}. {longo}", f"Seu Raimundo mora aqui {lugar_falado.em_cidade(cidade)}. {curto}"]
 
     if regra == "cidade":
-        onde = f"Aqui na cidade de {cidade}" if cidade == NOMES_UF[uf] else f"Aqui em {cidade}"
+        onde = f"Aqui na cidade {lugar_falado.de_cidade(cidade)}" if cidade == NOMES_UF[uf] else f"Aqui {lugar_falado.em_cidade(cidade)}"
         rotulo = f"{cidade} - {uf}"
     else:
         chave = uf if regra == "estado" else "BR"

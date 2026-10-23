@@ -84,11 +84,11 @@ def roteiro(ped: dict, dd: dict) -> dict:
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
     resto = "Quando a filha fica doente, é fila de madrugada no posto."
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
-    f0 = ([f"A Dona Marta mora {no_bairro}, aqui em {cidade}. {resto}"] if no_bairro else []) + \
-         [f"A Dona Marta mora aqui em {cidade}. {resto}", f"A Dona Marta mora aqui em {cidade}. Filha doente é fila de madrugada no posto."]
+    f0 = ([f"A Dona Marta mora {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}. {resto}"] if no_bairro else []) + \
+         [f"A Dona Marta mora aqui {lugar_falado.em_cidade(cidade)}. {resto}", f"A Dona Marta mora aqui {lugar_falado.em_cidade(cidade)}. Filha doente é fila de madrugada no posto."]
     antes, agora = dd["municipios"].get(ibge, [0, 0])
     if agora > 0 and agora >= 2 * antes:
-        alcance, onde, rotulo = "cidade", (f"Aqui na cidade de {cidade}" if cidade == NOMES_UF[uf] else f"Aqui em {cidade}"), f"{cidade} - {uf}"
+        alcance, onde, rotulo = "cidade", (f"Aqui na cidade {lugar_falado.de_cidade(cidade)}" if cidade == NOMES_UF[uf] else f"Aqui {lugar_falado.em_cidade(cidade)}"), f"{cidade} - {uf}"
     elif dd["ufs"][uf][1] > dd["ufs"][uf][0]:
         alcance, onde, rotulo = "estado", ESTADOS[uf][0], NOMES_UF[uf]
         antes, agora = dd["ufs"][uf]

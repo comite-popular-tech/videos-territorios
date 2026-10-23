@@ -61,16 +61,16 @@ def roteiro(ped: dict, md: dict) -> dict:
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
     if no_bairro:
-        f0 = [f"A Júlia tem sete anos e estuda numa escola municipal {no_bairro}, aqui em {cidade}.",
-              f"A Júlia tem sete anos e estuda {no_bairro}, aqui em {cidade}.",
-              f"A Júlia tem sete anos e estuda numa escola municipal aqui em {cidade}."]
+        f0 = [f"A Júlia tem sete anos e estuda numa escola municipal {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}.",
+              f"A Júlia tem sete anos e estuda {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}.",
+              f"A Júlia tem sete anos e estuda numa escola municipal aqui {lugar_falado.em_cidade(cidade)}."]
     else:
-        f0 = [f"A Júlia tem sete anos e estuda numa escola municipal aqui em {cidade}.",
-              f"A Júlia tem sete anos e estuda aqui em {cidade}."]
+        f0 = [f"A Júlia tem sete anos e estuda numa escola municipal aqui {lugar_falado.em_cidade(cidade)}.",
+              f"A Júlia tem sete anos e estuda aqui {lugar_falado.em_cidade(cidade)}."]
 
     regra = m["regra"]
     if regra == "cidade":
-        medias, onde = m["medias"], (f"Aqui na cidade de {cidade}" if cidade == NOMES_UF[uf] else f"Aqui em {cidade}")
+        medias, onde = m["medias"], (f"Aqui na cidade {lugar_falado.de_cidade(cidade)}" if cidade == NOMES_UF[uf] else f"Aqui {lugar_falado.em_cidade(cidade)}")
         rotulo = f"{cidade} - {uf}"
     else:
         chave = uf if regra == "estado" else "BR"

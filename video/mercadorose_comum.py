@@ -101,14 +101,14 @@ def roteiro(ped: dict, bf: dict) -> dict:
     bairro = limpa(nomes.get("bairro")) if nomes.get("regra") == "pares" else ""
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
     homonima = cidade == NOMES_UF[uf]   # São Paulo, Rio de Janeiro: o número não pode parecer do estado
-    aqui = "aqui na capital" if homonima else f"aqui em {cidade}"
+    aqui = "aqui na capital" if homonima else f"aqui {lugar_falado.em_cidade(cidade)}"
     resto = "Cria dois filhos sozinha, com faxina e bico."
     if no_bairro:
         f0 = [f"A Dona Rose mora {no_bairro}, {aqui}. {resto}", f"A Dona Rose mora {aqui}. {resto}"]
     else:
         f0 = [f"A Dona Rose mora {aqui}. {resto}"]
 
-    onde = f"Na cidade de {cidade}" if homonima else f"Aqui em {cidade}"
+    onde = f"Na cidade {lugar_falado.de_cidade(cidade)}" if homonima else f"Aqui {lugar_falado.em_cidade(cidade)}"
     fam = f"{onde}, {familias_falado(d['familias'])} famílias receberam o Bolsa Família em {MES}."
     comercio = "no comércio da capital" if homonima else ("no comércio daqui" if d["familias"] < 5000 else "no comércio da cidade")
     if d["por_100_dom"] > 50:

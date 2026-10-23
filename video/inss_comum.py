@@ -93,13 +93,13 @@ def roteiro(ped: dict) -> dict:
     no_bairro, do_bairro = lugar_falado.no_lugar(bairro), lugar_falado.do_lugar(bairro)   # None: nome que não se fala
     ini = "Dia de pagamento do INSS."
     if no_bairro:
-        f0 = [f"{ini} Seu Raimundo compra pão na padaria do Beto, {no_bairro}, aqui em {cidade}.",
-              f"{ini} Seu Raimundo compra pão {no_bairro}, aqui em {cidade}.",
-              f"{ini} Seu Raimundo compra pão na padaria do Beto, aqui em {cidade}."]
+        f0 = [f"{ini} Seu Raimundo compra pão na padaria do Beto, {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}.",
+              f"{ini} Seu Raimundo compra pão {no_bairro}, aqui {lugar_falado.em_cidade(cidade)}.",
+              f"{ini} Seu Raimundo compra pão na padaria do Beto, aqui {lugar_falado.em_cidade(cidade)}."]
     else:
-        f0 = [f"{ini} Seu Raimundo compra pão na padaria do Beto, aqui em {cidade}.",
-              f"{ini} Seu Raimundo compra pão aqui em {cidade}."]
-    onde = f"Aqui na cidade de {cidade}" if cidade == NOMES_UF[uf] else f"Aqui em {cidade}"
+        f0 = [f"{ini} Seu Raimundo compra pão na padaria do Beto, aqui {lugar_falado.em_cidade(cidade)}.",
+              f"{ini} Seu Raimundo compra pão aqui {lugar_falado.em_cidade(cidade)}."]
+    onde = f"Aqui na cidade {lugar_falado.de_cidade(cidade)}" if cidade == NOMES_UF[uf] else f"Aqui {lugar_falado.em_cidade(cidade)}"
     quem = "1 aposentado vive" if apos == 1 else f"{aposentados_falado(apos)} aposentados vivem"
     f3 = [f"{onde}, {quem} do INSS. Todo mês, {reais_falado(mes)} entram na cidade.",
           f"{onde}, {quem} do INSS. Todo mês, são {reais_falado(mes)}."]
