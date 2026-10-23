@@ -256,6 +256,8 @@ while (feitos + falhas < LIMITE) {
   if (FIXOS.length && fixo >= FIXOS.length) break;
   const url = FIXOS.length ? `${FILA}/lote/${FIXOS[fixo]}` : `${FILA}/proximo`;
   const r = await pedir(url, 'POST', JSON.stringify(FIXOS.length ? corpo : { ...corpo, capaz: capazes() }), 'application/json', 8);
+  // Worker sem a lista viva (publicado de uma cópia antiga): espera ele voltar, em vez de largar a máquina parada
+  if (r.status === 404 && !FIXOS.length) { console.log(`a fila não tem a lista viva agora (${FILA}/proximo: 404); confiro de novo em ${PAUSA / 1000} s`); await dormir(PAUSA); continue; }
   if (!r.ok) { console.error(`a fila respondeu ${r.status}: ${await r.text()}`); process.exit(1); }
   const lote = await r.json();
   if (lote.atualizar) { if ((recomecou = await atualizar(lote.atualizar, lote.repo, [feitos, falhas])) !== undefined) break; continue; }
