@@ -1,16 +1,27 @@
 # Vídeos da campanha por território
 
 Vídeos verticais (1080×1920, cerca de 35 s) feitos para cada cidade e bairro do Brasil, com os números do lugar,
-para a campanha. Agora estamos produzindo **"A insulina do Seu Raimundo"**, sobre a Farmácia Popular; antes saiu o
-"Alerta Saúde SUS". Tudo é montado por código ([Remotion](https://www.remotion.dev/), React → MP4) a partir de dados
-públicos, pelo Comitê Popular Tech. Este repositório é aberto para que qualquer pessoa possa emprestar o computador
-para produzir os vídeos.
+para a campanha: hoje saem "O dinheiro que gira" (INSS), "O mercado da Dona Rose", "A merenda da Júlia" e "A visita
+da Cida", depois dos de Saúde, Casa nova e O posto novo. Tudo é montado por código ([Remotion](https://www.remotion.dev/),
+React → MP4) a partir de dados públicos, pelo Comitê Popular Tech. Este repositório é aberto para que qualquer pessoa
+possa emprestar máquinas para produzir os vídeos.
 
-## O jeito mais fácil: pelo navegador
+## O jeito mais rápido: 20 máquinas do GitHub, de graça (5 minutos)
 
-Abra <https://comite-popular-tech.github.io/videos-territorios/> no **Chrome** ou no **Edge** do computador e deixe a
-aba aberta. Você confere os 2 primeiros vídeos e depois o navegador monta e envia sozinho. Não precisa instalar nada.
-Detalhes em [`navegador/`](navegador/).
+Quem tem conta no GitHub empresta **20 máquinas** de uma vez, sem instalar nada e sem deixar o computador ligado:
+
+1. Entre no GitHub (crie uma conta grátis em <https://github.com/signup> se não tiver).
+2. Nesta página, clique em **Fork** (no alto, à direita) e depois em **Create fork**.
+3. No seu fork, abra a aba **Actions** e clique em **I understand my workflows, go ahead and enable them**.
+4. Na lista à esquerda, clique em **videos**, depois em **Run workflow** e de novo em **Run workflow** (verde), sem mudar
+   nada.
+
+Pronto: as máquinas pegam vídeos da fila por até 5h50 e param sozinhas quando acaba. O andamento está em
+<https://fila-videos.boralula.workers.dev/> (as suas aparecem como `actions-<seu usuário>-1` a `-20`). Se a fila ainda
+tiver vídeos depois disso, é só repetir o passo 4. Fork antigo? Antes do passo 4, clique em **Sync fork** →
+**Update branch** na página do seu fork. Detalhes em [Para a equipe](#para-a-equipe-máquinas-do-github-actions).
+
+A ajuda pelo navegador (página em `navegador/`) está **pausada**: ela montava a versão antiga do vídeo da insulina.
 
 ## Como ajudar com o seu computador
 
@@ -91,7 +102,7 @@ Para testar com poucos vídeos, ponha `--limite 2` no fim; para pesar menos no c
 ## Para a equipe: máquinas do GitHub Actions
 
 O workflow **videos** (aba Actions → videos → Run workflow) põe até 20 máquinas do GitHub na mesma fila. É o jeito
-de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. **Dispare num
+mais rápido de ajudar (passo a passo no começo desta página). **Dispare num
 fork, na sua conta**, nunca neste repositório: o GitHub dá 20 máquinas por conta, e aqui elas seriam as 20 da org
 inteira, deixando o CI dos outros repositórios na fila (aqui o workflow só aceita o kit de exemplo). O campo
 **Trabalho da fila** fica vazio: a máquina segue a lista viva da fila (a coordenação põe e tira trabalhos e decide a

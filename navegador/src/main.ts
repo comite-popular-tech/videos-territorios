@@ -13,6 +13,14 @@ const nomeDe = (it: Item) => it.rotulo ?? it.slug;
 const mostrar = (id: string, sim = true) => { $(id).hidden = !sim; };
 const params = new URLSearchParams(location.search);
 ($('progresso') as HTMLAnchorElement).href = `${FILA}/`;
+// PAUSADA desde 23/10: a página monta a insulina com o roteiro e a abertura de 21/10, e a fila já está na versão 2
+// (abertura padrão, bairro com artigo). Montar aqui marcaria como pronto um vídeo velho. Volta quando a cópia das
+// cenas em src/ acompanhar o video/ (ou com ?teste / ?padrao, que não enviam nada).
+if (!params.has('teste') && !params.has('padrao')) {
+  mensagem(`A ajuda pelo navegador está pausada. Para ajudar, siga o passo a passo em <a href="https://github.com/comite-popular-tech/videos-territorios#readme">github.com/comite-popular-tech/videos-territorios</a>. Obrigado!`);
+  mostrar('inicio', false);
+  throw new Error('página pausada');
+}
 
 let aprovados = +(guardado('aprovados') ?? 0); // 2 = já revisou (não repete a revisão)
 let feitos = +(guardado('feitos') ?? 0);

@@ -61,6 +61,9 @@ const incapazes = new Set(); // trabalhos que esta máquina tentou preparar e n�
 const capazes = () => fs.readdirSync(path.join(VIDEO, 'trabalhos')).filter((a) => /^[a-z0-9-]+\.(mjs|sh)$/.test(a)).map((a) => a.replace(/\.(mjs|sh)$/, ''))
   .filter((t, i, l) => l.indexOf(t) === i && !incapazes.has(t) && (requer(t).node ?? 0) <= NODE);
 const preparados = new Set();
+// lotes seguidos sem nenhum pronto, por trabalho: no 2º a máquina larga o trabalho (em 22/10 uma cópia quebrada do INSS
+// falhou 2.689 itens três vezes cada em uma hora, porque seguia pedindo lote atrás de lote)
+const lotesSemPronto = {};
 function preparar(t) {
   if (preparados.has(t)) return true;
   const py = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
@@ -212,7 +215,7 @@ async function fazer(lote) {
   if (!prontos.length) return;
 
   // produz o lote inteiro
-  const t0 = Date.now();
+  const t0 = Date.now(), antes = feitos;
   const py = pythonDireto(script);
   const cmd = script.endsWith('.mjs') ? [process.execPath, [script]] : py ? [process.env.PYTHON || 'python', [py]] : ['bash', [script]];
   const res = spawnSync(cmd[0], [...cmd[1], ENT, SAI, ...prontos.map((t) => t.slug), ...extras], { cwd: VIDEO, stdio: 'inherit' });
@@ -244,6 +247,12 @@ async function fazer(lote) {
     }
   }
   console.log(`lote ${lote.lote}: ${prontos.length} em ${((Date.now() - t0) / 60000).toFixed(1)} min; total desta rodada: ${feitos} prontos, ${falhas} falhas`);
+  lotesSemPronto[TRABALHO] = feitos > antes ? 0 : (lotesSemPronto[TRABALHO] ?? 0) + 1;
+  if (lotesSemPronto[TRABALHO] >= 2) {
+    incapazes.add(TRABALHO);
+    console.log(`PARE: esta máquina não conseguiu fazer nenhum ${TRABALHO} em 2 lotes seguidos; não pego mais esse trabalho (os outros seguem).`);
+    console.log(`  Mande as mensagens de erro acima para quem te chamou para ajudar. Código novo chega sozinho e libera o trabalho de novo.`);
+  }
 }
 
 // ---------------------------------------------------------------- laço principal
