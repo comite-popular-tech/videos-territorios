@@ -28,6 +28,7 @@ sys.path.insert(0, str(VIDEO))
 import maismedicos as MM  # noqa: E402
 import mercadorose as M  # noqa: E402
 import mercadorose_comum as C  # noqa: E402
+import previa_video  # noqa: E402  (previa.webp ao lado do mp4: o ajudar.mjs sobe as duas e o acervo não refaz)
 
 FILA = os.environ.get("FILA_URL", "https://fila-videos.boralula.workers.dev").rstrip("/")
 COMUM = M.KIT / "comum"
@@ -102,6 +103,7 @@ def main() -> int:
             if not it["p4"].exists():
                 raise RuntimeError("a cena do dado não saiu do Remotion")
             M.montar_um(it, durs, COMUM)
+            previa_video.previa(it["saida"], it.get("fim_abertura"))
             ok += 1
             print(f"  {it['slug']}: montagem {time.time() - t0:.0f} s")
         except Exception as e:  # noqa: BLE001

@@ -145,13 +145,14 @@ await new Promise((ok) => servidor.listen(0, '127.0.0.1', ok));
 const BASE = `http://127.0.0.1:${servidor.address().port}`;
 
 // ---------------------------------------------------------------- abertura padrão do lote (video/abertura.py, uma chamada)
+const PYTHON = process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3');
 const AB = {};
 {
   const pedidos = path.join(TMP, 'abertura.json');
   fs.writeFileSync(pedidos, JSON.stringify({ vozes: VOZES, selo: 'A FARMÁCIA POPULAR ESTÁ AMEAÇADA', palavra_selo: 'farmácia',
     itens: itens.map((it) => ({ abertura: it.abertura, morador: it.morador, morador_fala: it.morador_fala, local: it.local,
       primeiro: path.join(COMUM, 'pecas/peca1.mp4'), saida: path.join(TMP, `${it.slug}-p0.mp4`) })) }));
-  const r = spawnSync(process.env.PYTHON || (process.platform === 'win32' ? 'python' : 'python3'), [path.join(C.VIDEO, 'abertura.py'), pedidos], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
+  const r = spawnSync(PYTHON, [path.join(C.VIDEO, 'abertura.py'), pedidos], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] });
   if (r.status !== 0) { console.error('a abertura falhou'); process.exit(1); }
   Object.assign(AB, JSON.parse(r.stdout.trim().split('\n').pop()));
 }
@@ -212,6 +213,8 @@ for (const it of itens) {
     const fin = path.join(SAI, it.slug, 'insulina.mp4');
     fs.mkdirSync(path.dirname(fin), { recursive: true });
     C.ffmpeg('-i', tmp('video.mp4'), '-i', tmp('audio.m4a'), '-c', 'copy', '-shortest', '-movflags', '+faststart', fin);
+    // previa.webp ao lado do mp4 (video/previa_video.py): o ajudar.mjs sobe as duas e o acervo não refaz; falhar não derruba o vídeo
+    spawnSync(PYTHON, [path.join(C.VIDEO, 'previa_video.py'), fin, String(ab)], { stdio: 'inherit', env: { ...process.env, FFMPEG: C.FFMPEG } });
     ok++;
     console.log(`  ${it.slug}: ${total.toFixed(1)} s, montagem ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   } catch (e) {

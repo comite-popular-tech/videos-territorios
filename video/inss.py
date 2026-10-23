@@ -209,6 +209,7 @@ def montar_um(it: dict, durs: dict, comum: Path = C.PUB) -> None:
     ass1.write_text(C.ass(it["leg"][0], extra=it["extra"][0]), encoding="utf-8")
     C.ffmpeg("-i", pecas_dir / "peca1.mp4", "-vf", C.filtro_ass(ass1), *C.ENC, tmp("p1.mp4"))
     ab = abertura(it, tmp("p0.mp4"), pecas_dir) if it.get("com_abertura", True) else 0.0
+    it["fim_abertura"] = ab   # a prévia do acervo é um quadro do fim da abertura (previa_video.py)
     total += ab
     pecas_ = ([tmp("p0.mp4")] if ab else []) + [tmp("p1.mp4"), pecas_dir / "peca2.mp4", pecas_dir / f"peca3-{it['cena3']}.mp4", it["p4"],
               pecas_dir / "peca5.mp4", pecas_dir / "peca6.mp4"]

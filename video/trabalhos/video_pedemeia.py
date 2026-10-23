@@ -29,6 +29,7 @@ sys.path.insert(0, str(VIDEO))
 import abertura as AB  # noqa: E402  (abertura padrão: cartão no 1º quadro, voz e "Entenda por quê")
 import pedemeia_cena4  # noqa: E402
 import pedemeia_comum as C  # noqa: E402
+import previa_video  # noqa: E402  (previa.webp ao lado do mp4: o ajudar.mjs sobe as duas e o acervo não refaz)
 
 FILA = os.environ.get("FILA_URL", "https://fila-videos.boralula.workers.dev").rstrip("/")
 KIT = VIDEO / "kit" / "video-pedemeia"
@@ -125,6 +126,7 @@ def montar(it: dict, dur: list, total: float, proc: int) -> None:
     fin = it["saida"]
     fin.parent.mkdir(parents=True, exist_ok=True)
     C.ffmpeg("-i", tmp("video.mp4"), "-i", tmp("audio.m4a"), "-c", "copy", "-shortest", "-movflags", "+faststart", fin)
+    previa_video.previa(fin, ab)
 
 
 def main() -> int:
