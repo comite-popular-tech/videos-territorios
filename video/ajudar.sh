@@ -1,8 +1,10 @@
 #!/bin/bash
 # Ajuda a produzir os vídeos da campanha: prepara o ambiente (npm i, edge-tts, trilha) e roda o ajudar.mjs, que pega lotes
-# da fila, renderiza e sobe os MP4 até a fila esvaziar. Linux, macOS e Git Bash no Windows.
-#   bash video/ajudar.sh [--trabalho video-bolsa-familia] [--limite N] [--gl angle|swangle] [--quem nome]
-# FILA_URL no ambiente troca a fila (padrão: o Worker publicado). Sai com 0 quando a fila está vazia.
+# da fila, renderiza e sobe os MP4, seguindo a lista viva da fila (trabalho novo e código novo chegam sozinhos, sem
+# reiniciar). Linux, macOS e Git Bash no Windows.
+#   bash video/ajudar.sh [--trabalho video-bolsa-familia] [--limite N] [--esperar MIN] [--gl angle|swangle] [--quem nome]
+# FILA_URL no ambiente troca a fila (padrão: o Worker publicado). Com a fila vazia, espera trabalho novo (--esperar MIN:
+# sai depois de MIN minutos parado).
 set -e
 cd "$(dirname "$0")"
 command -v node >/dev/null || { echo "PARE: instale o Node 20+ (https://nodejs.org)"; exit 1; }

@@ -49,19 +49,34 @@ bash video/ajudar.sh
 ```
 
 Na primeira vez o script instala o que falta (`npm i` em video/, `pip install edge-tts numpy`, `python trilha.py`).
-Ele pede um lote de territórios à fila, baixa só as fotos e os dados deles, renderiza e devolve os vídeos
-prontos. Repete até a fila esvaziar; pode parar com Ctrl+C e rodar de novo quando quiser (o que ficou pela metade volta
-para a fila em 2 horas). Sem placa de vídeo, use `bash video/ajudar.sh --gl swangle`; para fazer só alguns,
+Ele pergunta à fila qual é o trabalho da vez, pede um lote de territórios, baixa só as fotos e os dados deles,
+renderiza e devolve os vídeos prontos. Esvaziou um trabalho, segue o próximo; com a fila toda vazia, espera trabalho
+novo (confere a cada 2 min). Pode parar com Ctrl+C e rodar de novo quando quiser (o que ficou pela metade volta para a
+fila em 2 horas). Sem placa de vídeo, use `bash video/ajudar.sh --gl swangle`; para fazer só alguns,
 `--limite 20`. O andamento de todo mundo fica em https://fila-videos.boralula.workers.dev/.
 
-No Windows sem Git Bash: `powershell -ExecutionPolicy Bypass -File videojudar.ps1`.
+No Windows sem Git Bash: `powershell -ExecutionPolicy Bypass -File video\ajudar.ps1`.
 
-A fila é genérica: cada *trabalho* (hoje só `video-saude`, o padrão do ajudar.sh) tem um script em
-[trabalhos/](trabalhos/) que recebe as entradas de um lote e deixa a saída de cada território numa pasta; o
-[ajudar.mjs](ajudar.mjs) cuida do resto (lote, download, upload, pronto). `--trabalho outro` escolhe outro trabalho.
+A fila é genérica: cada *trabalho* (`video-saude`, `video-merenda`...) tem um script em [trabalhos/](trabalhos/) que
+recebe as entradas de um lote e deixa a saída de cada território numa pasta; o [ajudar.mjs](ajudar.mjs) cuida do resto
+(lote, download, upload, pronto).
+
+- **Lista viva.** A fila guarda quais trabalhos estão ativos e em que ordem (prioridade). Sem `--trabalho`, o
+  ajudar.mjs pede a cada lote "o próximo", e o Worker manda o trabalho ativo de menor prioridade que ainda tem
+  pendentes. Trabalho ou território novo que a coordenação põe na fila entra para quem já está rodando, sem reiniciar
+  nada. `--trabalho a,b` fixa os trabalhos, na ordem, e sai quando esvaziam; `--esperar 15` sai depois de 15 min parado.
+- **Código novo chega sozinho.** O Worker diz qual commit deste repositório quem ajuda deve rodar. Se for outro, entre
+  um lote e outro o ajudar.mjs baixa o pacote desse commit do GitHub, troca só os arquivos que mudaram (roda `npm i` se o
+  `package.json` mudou) e recomeça. Vale para a cópia baixada em ZIP e para as máquinas do Actions; num clone do git,
+  só num `master` sem mudanças (faz `git pull`), senão avisa. `--sem-atualizar` desliga.
+- **Requisitos de um trabalho** além do que o ajudar.sh instala: `trabalhos/<trabalho>.requer.json`
+  (`{"node": 22, "python": ["PIL:pillow"]}`). Máquina sem o Node pedido não pega o trabalho; o pacote do Python ele instala.
+- **Teste** sem gastar máquina: o trabalho `teste-fila` só escreve um `teste.json` por item.
+
 Para quem cuida da fila (no repositório privado do comitê, que tem os dados): `python video/fila/publicar.py` publica o
-Worker e `python video/kit_fundos.py` gera e sobe o kit (fundos em 1080×1920 e dados de cada território), cadastra o trabalho
-e semeia a fila na ordem combinada; `--versao 2` manda refazer tudo (troca de voz, por exemplo).
+Worker; o `--semear` de cada material (ex.: `python video/cida_dados.py --semear`) sobe as entradas, cadastra o trabalho
+(fora da lista) e semeia; `python video/fila/fila.py ativar <trabalho>` põe na lista viva e aponta o código de quem
+ajuda para o `master` daqui (`fila.py` sem nada mostra a lista; também `pausar`, `prioridade`, `semear`, `codigo`).
 
 ## Todos os territórios
 
@@ -91,8 +106,9 @@ rodar aqui, exceto com `exemplo` marcado, para testar). Qualquer conta do GitHub
 4. Antes de cada rodada, **Sync fork** na página do fork, para pegar o workflow atual.
 
 Cada máquina prepara o `video/` (cerca de 3 min, menos quando o cache pega), roda
-`bash video/ajudar.sh --gl swangle` e vai pegando territórios da fila (`trabalho`, padrão `video-saude`) até ela
-acabar ou até 5h50 (limite do GitHub é 6 h). A fila é um Worker público: o endereço vem da entrada `fila_url` ou, vazia,
+`bash video/ajudar.sh --gl swangle` e vai pegando territórios da fila (com `trabalho` vazio, o padrão, segue a lista
+viva) até ficar `esperar` minutos sem nada para fazer (padrão 15) ou até 5h50 (limite do GitHub é 6 h). Código novo e
+trabalho novo chegam sem disparar de novo. A fila é um Worker público: o endereço vem da entrada `fila_url` ou, vazia,
 da variável de repositório `FILA_URL` (nunca de um segredo, para o fork funcionar). O resumo da rodada, com o tempo
 de cada vídeo, fica na aba Summary da execução.
 

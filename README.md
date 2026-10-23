@@ -83,7 +83,9 @@ Para testar com poucos vídeos, ponha `--limite 2` no fim; para pesar menos no c
 - **O computador ficou muito lento.** Pare e rode com menos esforço: no Windows, abra o PowerShell na pasta `video` e rode
   `powershell -ExecutionPolicy Bypass -File ajudar.ps1 --conc 2`; no Mac/Linux, ponha `--conc 2` no fim do comando.
 - **Apareceu "PARE: falta o Node.js" ou "falta o Python".** Instale o programa indicado, feche a janela e tente de novo.
-- **Acabou?** Quando a fila esvazia, aparece `fila vazia` e o programa para sozinho. O andamento de todos está em
+- **Acabou?** Quando não há nada na fila, ele avisa e fica esperando trabalho novo (confere a cada 2 minutos): pode
+  deixar a janela aberta, ou fechar quando quiser. Vídeo novo que a campanha puser na fila ele pega sozinho, e o
+  programa se atualiza sozinho quando muda: não precisa baixar de novo. O andamento de todos está em
   <https://fila-videos.boralula.workers.dev/>.
 
 ## Para a equipe: máquinas do GitHub Actions
@@ -92,10 +94,11 @@ O workflow **videos** (aba Actions → videos → Run workflow) põe até 20 má
 de a equipe da campanha acelerar uma rodada; para voluntários, o caminho é o computador próprio, acima. **Dispare num
 fork, na sua conta**, nunca neste repositório: o GitHub dá 20 máquinas por conta, e aqui elas seriam as 20 da org
 inteira, deixando o CI dos outros repositórios na fila (aqui o workflow só aceita o kit de exemplo). O campo
-**Trabalho da fila** diz quais vídeos produzir, na ordem: esvaziada a fila de um, a máquina segue para o próximo. Hoje
-o padrão é `video-saude,video-mcmv,video-postonovo,video-aposentados,video-inss,video-mercadorose,video-merenda,video-cida`
-(o mesmo do `ajudar.sh` / `AJUDAR-windows.bat` sem argumentos). A rodada dura até 5h50 (limite do GitHub); se
-ainda houver fila, rode de novo. Com `exemplo` marcado, renderiza só os 4 territórios do kit de exemplo, para teste.
+**Trabalho da fila** fica vazio: a máquina segue a lista viva da fila (a coordenação põe e tira trabalhos e decide a
+ordem; esvaziou um, a máquina segue para o próximo), igual ao `ajudar.sh` / `AJUDAR-windows.bat` sem argumentos.
+Trabalho e código novos chegam sozinhos, sem disparar de novo; nomes separados por vírgula fixam os trabalhos. A máquina
+para depois de **esperar** minutos sem nada na fila (padrão 15) ou em 5h50 (limite do GitHub); se ainda houver fila,
+rode de novo. Com `exemplo` marcado, renderiza só os 4 territórios do kit de exemplo, para teste.
 
 ## Para quem programa
 

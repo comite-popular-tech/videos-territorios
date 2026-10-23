@@ -2,8 +2,10 @@
 # Dispare em Actions → videos → Run workflow **num fork** (conta pessoal ou org só sua): o limite de 20 máquinas do
 # plano Free é por conta, e rodar aqui ocupa as 20 da org e trava o CI dos outros repositórios. Neste repositório o
 # render recusa rodar; só o kit de exemplo é permitido, para testar o workflow. Cada máquina roda video/ajudar.sh, que
-# pede lotes de territórios à fila (Worker público, entrada fila_url), renderiza, sobe os MP4 e para quando a fila
-# esvazia. Com `exemplo` marcado, renderiza só o kit de exemplo (4 territórios) e sobe os MP4 como artifact: teste.
+# pede lotes de territórios à fila (Worker público, entrada fila_url), renderiza e sobe os MP4. Com `trabalho` vazio,
+# segue a lista viva da fila: trabalho ou item novo que a coordenação puser entra sem disparar de novo, e código novo
+# chega sozinho entre um lote e outro; a máquina para depois de `esperar` minutos sem nada na fila. Com `exemplo`
+# marcado, renderiza só o kit de exemplo (4 territórios) e sobe os MP4 como artifact: teste.
 name: videos
 
 on:
@@ -26,9 +28,13 @@ on:
         type: boolean
         default: false
       trabalho:
-        description: 'Trabalhos da fila, na ordem, separados por vírgula (esvaziou um, segue o próximo)'
+        description: 'Vazio = a lista viva da fila (o normal). Ou trabalhos fixos, na ordem, separados por vírgula'
         type: string
-        default: video-saude,video-mcmv,video-postonovo,video-aposentados,video-inss,video-mercadorose,video-merenda,video-cida
+        default: ''
+      esperar:
+        description: 'Minutos parada, sem nada na fila, antes de a máquina sair'
+        type: number
+        default: 15
       fila_url:
         description: 'URL do Worker da fila'
         type: string
@@ -102,7 +108,8 @@ jobs:
 
       - name: Render
         env:
-          TRABALHO: ${{ inputs.trabalho || 'video-saude' }}
+          TRABALHO: ${{ inputs.trabalho }}
+          ESPERAR: ${{ inputs.esperar || 15 }}
           LIMITE: ${{ inputs.limite || 0 }}
           CONC: ${{ inputs.conc || 4 }}
           SEM_VOZ: ${{ inputs.sem_voz && '--sem-voz' || '' }}
@@ -113,7 +120,8 @@ jobs:
             cd video && node lote.mjs --exemplo --todas --gl swangle --conc "$CONC" $SEM_VOZ
           else
             LIM=""; [ "$LIMITE" -gt 0 ] && LIM="--limite $LIMITE"
-            bash video/ajudar.sh --trabalho "$TRABALHO" --quem "$QUEM" $LIM --gl swangle --conc "$CONC" $SEM_VOZ
+            TR=""; [ -n "$TRABALHO" ] && TR="--trabalho $TRABALHO"   # vazio: a lista viva da fila
+            bash video/ajudar.sh $TR --esperar "$ESPERAR" --quem "$QUEM" $LIM --gl swangle --conc "$CONC" $SEM_VOZ
           fi
 
       - name: Tempo por vídeo

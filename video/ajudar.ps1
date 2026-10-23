@@ -1,5 +1,6 @@
 # Ajuda a produzir os vídeos da campanha no Windows (PowerShell): prepara o ambiente e roda o ajudar.mjs, que pega lotes
-# da fila, renderiza e sobe os vídeos até a fila esvaziar. Quem prefere clicar usa o AJUDAR-windows.bat, que chama este.
+# da fila, renderiza e sobe os vídeos, seguindo a lista viva da fila (trabalho novo e código novo chegam sozinhos, sem
+# reiniciar). Quem prefere clicar usa o AJUDAR-windows.bat, que chama este.
 #   powershell -ExecutionPolicy Bypass -File video\ajudar.ps1 [--trabalho video-bolsa-familia] [--limite N] [--conc 2] [--quem nome]
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
