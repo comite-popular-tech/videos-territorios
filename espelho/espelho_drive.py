@@ -62,9 +62,12 @@ ESTILOS = {"preto": "Preto", "colorido": "Colorido"}
 JOGO = {"1200138": "pmtqzh5wsk", "3549805:vila-toninho": "gjz6dpx5a3"}   # o mesmo de scripts/acervo.py
 MATERIAIS = ("video", "cards", "massa", "atalhos", "links")
 PADRAO = ("video", "cards")
-# Vídeo de Saúde fora do ar no site (dados/videos_saude_retirados.json do repositório privado, 22/10): sem UBS ativa no
-# CNES ou com o posto do bairro desativado. O mp4 antigo segue no R2, então o espelho não pode subir só por existir lá.
-SAUDE_FORA_DO_AR = {"pr-rancho-alegre", "rs-sao-joao-da-urtiga", "ba-juazeiro--nossa-senhora-das-gr", "mg-uba--distrito-de-ubeba"}      # Gui, 2026-10-20: só o que está no cards.boralula.org (os 12 cards e o vídeo de Saúde)
+# O que saiu do site (Gui, 2026-10-20: no Drive, só o que está no cards.boralula.org), por tipo de vídeo ou "cards":
+# fora_do_ar.json. Ex.: o vídeo de Saúde sem UBS ativa no CNES (22/10). O mp4 antigo segue no R2, então nada sobe só por
+# existir lá; o espelho/retirar.py manda para a lixeira o que já tinha subido.
+FORA_DO_AR = {k: set(v) for k, v in json.loads(Path(__file__).with_name("fora_do_ar.json").read_text(encoding="utf-8")).items()
+              if k != "_"}
+SAUDE_FORA_DO_AR = FORA_DO_AR.get("saude", set())
 
 
 def sem_acento(s: str) -> str:
@@ -79,15 +82,16 @@ class Rclone:
     """Um rclone rcd local; cada chamada é um POST JSON. O rclone cuida de token, novas tentativas e ritmo do Drive."""
 
     def __init__(self, remoto: str):
-        self.fs = f"{remoto},root_folder_id={PASTA_RAIZ}:"
+        self.fs = f"{remoto},root_folder_id={PASTA_RAIZ},use_trash=true:"     # apagar = lixeira, nunca de vez
         with socket.socket() as s:
             s.bind(("127.0.0.1", 0))
             self.porta = s.getsockname()[1]
         senha = secrets.token_hex(16)
         self.auth = "Basic " + b64encode(f"espelho:{senha}".encode()).decode()
+        # o Drive aceita 750 GB por conta por dia: passou disso, erro na hora (rodar de novo no dia seguinte completa)
         self.proc = subprocess.Popen(
             ["rclone", "rcd", f"--rc-addr=127.0.0.1:{self.porta}", "--rc-user=espelho", f"--rc-pass={senha}",
-             "--drive-pacer-min-sleep=20ms", "--retries=5", "--low-level-retries=20", "-q"])
+             "--drive-pacer-min-sleep=20ms", "--drive-stop-on-upload-limit", "--retries=5", "--low-level-retries=20", "-q"])
         for _ in range(100):
             try:
                 self.chamar("rc/noop")
@@ -118,7 +122,11 @@ class Rclone:
         self.chamar("operations/mkdir", fs=self.fs, remote=caminho)
 
     def copyurl(self, url, caminho):
+        """Por cima de um arquivo que já existe, troca o conteúdo no mesmo arquivo (mesmo ID: os atalhos seguem valendo)."""
         self.chamar("operations/copyurl", fs=self.fs, remote=caminho, url=url, autoFilename=False)
+
+    def lixeira(self, caminho):
+        self.chamar("operations/deletefile", fs=self.fs, remote=caminho)
 
     def subir(self, local: Path, caminho):
         self.chamar("operations/copyfile", srcFs=str(local.parent), srcRemote=local.name, dstFs=self.fs, dstRemote=caminho)
@@ -130,20 +138,38 @@ class Rclone:
         self.proc.terminate()
 
 
-def existe_no_r2(url: str) -> bool:
-    """O Worker não atende HEAD: um GET de 1 byte (206 = existe)."""
+def tamanho_no_r2(url: str) -> int | None:
+    """Bytes do arquivo no R2, ou None se não existe. O Worker não atende HEAD: um GET de 1 byte (206 + Content-Range)."""
     for tentativa in range(4):
         try:
             req = urllib.request.Request(url, headers={"Range": "bytes=0-0", "User-Agent": "espelho-drive"})
             with urllib.request.urlopen(req, timeout=60) as r:
-                return r.status in (200, 206)
+                faixa = r.headers.get("Content-Range", "")
+                return int(faixa.rsplit("/", 1)[1]) if "/" in faixa else int(r.headers.get("Content-Length") or 0)
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                return False
+                return None
         except (urllib.error.URLError, TimeoutError, ConnectionError):
             pass
         time.sleep(2 * (tentativa + 1))
     raise RuntimeError(f"sem resposta do Worker: {url}")
+
+
+def existe_no_r2(url: str) -> bool:
+    return tamanho_no_r2(url) is not None
+
+
+def rotulos(terrs) -> dict:
+    """slug -> bairro no nome do arquivo ("" na cidade de um território só). Bairro repetido na mesma cidade (Manaus tem
+    cinco "Zona Rural") ganha número na ordem do índice: "Zona Rural", "Zona Rural 2", ..."""
+    if len(terrs) == 1:
+        return {terrs[0][0]: ""}
+    vistos, out = {}, {}
+    for t in terrs:
+        b = t[1] or ""
+        vistos[b] = vistos.get(b, 0) + 1
+        out[t[0]] = b if vistos[b] == 1 else f"{b} {vistos[b]}".strip()
+    return out
 
 
 def indice() -> list:
@@ -199,9 +225,10 @@ def plano_da_cidade(cid, rc, origens, so, ja):
         return caminho not in ja
 
     if "video" in so:
+        nomes = rotulos(terrs)          # o mesmo nome da base interna (bairro repetido com número: um vídeo para cada)
         for t in terrs:
             if t[0] in SAUDE_FORA_DO_AR: continue
-            arq = f"Vídeo/Alerta Saúde SUS{' - ' + t[1] if varios and t[1] else ''}.mp4"
+            arq = f"Vídeo/Alerta Saúde SUS{' - ' + nomes[t[0]] if nomes[t[0]] else ''}.mp4"
             url = f"{FILA}/video-saude/{t[0]}/saude.mp4"
             if falta(arq) and existe_no_r2(url):
                 passos.append(("url", arq, url))
@@ -221,6 +248,7 @@ def plano_da_cidade(cid, rc, origens, so, ja):
                 passos.append(("atalho", f"Cards por tema/{rotulo}.png", orig))
     if "cards" in so:
         for t in terrs:
+            if t[0] in FORA_DO_AR.get("cards", ()): continue
             pasta = f"Cards/{t[1]}/" if varios and t[1] else "Cards/"
             if any(falta(f"{pasta}{e}/{t[0]}-{p}{n}.jpg") for e, p in (("Preto", "p"), ("Colorido", "k")) for n in range(1, 7)):
                 passos.append(("cards", pasta, t[0]))

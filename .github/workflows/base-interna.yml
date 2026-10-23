@@ -1,7 +1,8 @@
 # Base de conteúdos internos no Google Drive (espelho/base_interna.py): Região/UF/Região intermediária/Município/Tema/Vídeo.
 # Um job por UF (as grandes em fatias); pula o que já existe, então pode rodar de novo para completar.
 # Mesmos secrets do espelho-drive (ESPELHO_DRIVE_TOKEN, _CLIENT_ID, _CLIENT_SECRET). O Drive limita escrita por conta:
-# max-parallel baixo (6). atalhos=true: em vez de subir, os atalhos em "Conteúdo por cidade/<UF>/<Cidade>/Vídeo/".
+# max-parallel baixo (6), e no máximo 750 GB por dia por conta (passou, o job para; rodar de novo no dia seguinte completa).
+# atalhos=true: em vez de subir, os atalhos em "Conteúdo por cidade/<UF>/<Cidade>/Vídeo/".
 name: base-interna
 on:
   workflow_dispatch:
@@ -10,7 +11,7 @@ on:
         description: "UFs separadas por espaço (vazio = todas)"
         default: ""
       so:
-        description: "materiais (vazio = todos): insulina, maismedicos"
+        description: "materiais (vazio = todos, os novos primeiro): inss,mercadorose,merenda,cida,insulina,pedemeia,maismedicos,posto,postonovo,mcmv,escola,saude"
         default: ""
       paralelo:
         description: "quantos jobs ao mesmo tempo"
