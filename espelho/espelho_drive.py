@@ -159,6 +159,12 @@ def existe_no_r2(url: str) -> bool:
     return tamanho_no_r2(url) is not None
 
 
+def no_caminho(nome: str) -> str:
+    """Barra dentro de um nome ("Beiru / Tancredo Neves"): o rclone lê "/" como pasta e grava "／" como a barra de
+    verdade no Drive, então todo caminho do rclone leva "／" no nome."""
+    return nome.replace("/", "／")
+
+
 def rotulos(terrs) -> dict:
     """slug -> bairro no nome do arquivo ("" na cidade de um território só). Bairro repetido na mesma cidade (Manaus tem
     cinco "Zona Rural") ganha número na ordem do índice: "Zona Rural", "Zona Rural 2", ..."""
@@ -166,7 +172,7 @@ def rotulos(terrs) -> dict:
         return {terrs[0][0]: ""}
     vistos, out = {}, {}
     for t in terrs:
-        b = t[1] or ""
+        b = no_caminho(t[1] or "")
         vistos[b] = vistos.get(b, 0) + 1
         out[t[0]] = b if vistos[b] == 1 else f"{b} {vistos[b]}".strip()
     return out
@@ -177,9 +183,17 @@ def indice() -> list:
     local = RAIZ / "saida" / "acervo" / "indice.json"
     if local.exists():
         return json.loads(local.read_text(encoding="utf-8"))
-    req = urllib.request.Request(f"{SITE}/indice.json", headers={"User-Agent": "espelho-drive"})
-    with urllib.request.urlopen(req, timeout=120) as r:
-        return json.loads(r.read())
+    for tentativa in range(3):
+        try:
+            req = urllib.request.Request(f"{SITE}/indice.json", headers={"User-Agent": "espelho-drive"})
+            with urllib.request.urlopen(req, timeout=120) as r:
+                return json.loads(r.read())
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            erro = e
+            time.sleep(20 * (tentativa + 1))
+    # o site no meio de uma publicação (404 no indice.json, 23/10): a cópia daqui (7.469 territórios de 23/10)
+    print(f"AVISO: sem o indice.json do site ({erro}); usando espelho/indice.json", flush=True)
+    return json.loads(Path(__file__).with_name("indice.json").read_text(encoding="utf-8"))
 
 
 class Origens:
@@ -249,7 +263,7 @@ def plano_da_cidade(cid, rc, origens, so, ja):
     if "cards" in so:
         for t in terrs:
             if t[0] in FORA_DO_AR.get("cards", ()): continue
-            pasta = f"Cards/{t[1]}/" if varios and t[1] else "Cards/"
+            pasta = f"Cards/{no_caminho(t[1])}/" if varios and t[1] else "Cards/"
             if any(falta(f"{pasta}{e}/{t[0]}-{p}{n}.jpg") for e, p in (("Preto", "p"), ("Colorido", "k")) for n in range(1, 7)):
                 passos.append(("cards", pasta, t[0]))
     if "links" in so and falta("Links.txt"):

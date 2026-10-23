@@ -19,7 +19,7 @@ import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # python -I não põe a pasta do script no path
-from espelho_drive import DESTINO as CIDADES, FORA_DO_AR, SITE, indice, rotulos   # noqa: E402
+from espelho_drive import DESTINO as CIDADES, FORA_DO_AR, SITE, indice, no_caminho, rotulos   # noqa: E402
 from base_interna import (DESTINO as BASE, MATERIAIS, MUNICIPAIS,  # noqa: E402
                           base_da_cidade, nome_do_arquivo)
 from atalhos_cpl import ITENS as ITENS_CPL   # noqa: E402
@@ -66,7 +66,7 @@ def esperado(cidades, videos, cards_cpl):
                 out.append((item[2:] + (" (vídeo)" if item.startswith("v:") else " (card)"), f"{pasta_cid}/{sub}/{arq}"))
         for t in terrs:                                    # os 12 cards do território (espelho_drive.py)
             if t[0] in FORA_DO_AR.get("cards", ()): continue
-            pasta = f"{pasta_cid}/Cards/{t[1] + '/' if varios and t[1] else ''}"
+            pasta = f"{pasta_cid}/Cards/{no_caminho(t[1]) + '/' if varios and t[1] else ''}"
             out += [("12 cards", f"{pasta}{e}/{t[0]}-{p}{n}.jpg") for e, p in (("Preto", "p"), ("Colorido", "k")) for n in range(1, 7)]
     return out
 

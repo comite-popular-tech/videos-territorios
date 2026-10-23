@@ -22,7 +22,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # python -I não põe a pasta do script no path
-from espelho_drive import DESTINO as CIDADES, Rclone, indice, rotulos   # noqa: E402
+from espelho_drive import DESTINO as CIDADES, Rclone, indice, no_caminho, rotulos   # noqa: E402
 from base_interna import DESTINO as BASE, MATERIAIS, base_da_cidade, nome_do_arquivo   # noqa: E402
 
 
@@ -34,7 +34,7 @@ def caminhos(cid, tipos_por_slug) -> list[str]:
     for t in terrs:
         for tipo in sorted(tipos_por_slug.get(t[0], ())):
             if tipo == "cards":
-                pasta = f"{CIDADES}/{uf}/{nome}/Cards/{t[1] + '/' if varios and t[1] else ''}"
+                pasta = f"{CIDADES}/{uf}/{nome}/Cards/{no_caminho(t[1]) + '/' if varios and t[1] else ''}"
                 out += [f"{pasta}{e}/{t[0]}-{p}{n}.jpg" for e, p in (("Preto", "p"), ("Colorido", "k")) for n in range(1, 7)]
             else:
                 arq = nome_do_arquivo(tipo, nomes[t[0]])

@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # python -I não põe a pasta do script no path
-from espelho_drive import indice, rotulos   # noqa: E402
+from espelho_drive import indice, no_caminho, rotulos   # noqa: E402
 from base_interna import MATERIAIS, MUNICIPAIS, nome_do_arquivo   # noqa: E402
 from atalhos_cpl import Drive   # noqa: E402
 
@@ -52,8 +52,8 @@ def planejar(cid, arquivos, pastas):
         rot = nomes[t[0]] or t[0].split("--")[-1]
         itens = [(nome_do_arquivo(m, rot), videos[nome_do_arquivo(m, rot)]) for m in MATERIAIS
                  if m not in MUNICIPAIS and nome_do_arquivo(m, rot) in videos]
-        if t[1] and f"{p}/Cards/{t[1]}" in pastas:
-            itens.append(("Cards", pastas[f"{p}/Cards/{t[1]}"]))
+        if t[1] and f"{p}/Cards/{no_caminho(t[1])}" in pastas:
+            itens.append(("Cards", pastas[f"{p}/Cards/{no_caminho(t[1])}"]))
         out.append((rot, t[0], itens + comuns))
     return out
 
@@ -69,13 +69,14 @@ def executar(drive, cid, plano, pastas, simular):
         raiz = drive.criar("Bairros", pastas[p])
     mapa, feitos = {}, 0
     for rot, slug, itens in plano:
-        pasta = filhos.get(rot)
+        pasta = filhos.get(rot.replace("／", "/"))
         ja = drive.filhos(pasta) if pasta else {}
         if not pasta:
-            pasta = drive.criar(rot, raiz)
-            filhos[rot] = pasta
+            pasta = drive.criar(rot.replace("／", "/"), raiz)      # pela API vai a barra de verdade
+            filhos[rot.replace("／", "/")] = pasta
         mapa[slug] = pasta
         for nome, origem in itens:
+            nome = nome.replace("／", "/")
             if nome not in ja:
                 drive.criar(nome, pasta, origem)
                 ja[nome] = origem
