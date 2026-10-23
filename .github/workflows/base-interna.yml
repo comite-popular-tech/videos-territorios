@@ -16,6 +16,9 @@ on:
       paralelo:
         description: "quantos jobs ao mesmo tempo"
         default: "6"
+      fase:
+        description: "vazio = tudo; cidades = menos os 1.340 bairros novos de 22/10; bairros = só eles"
+        default: ""
       atalhos:
         description: "atalhos em Conteúdo por cidade para o que já está na base (não sobe vídeo)"
         type: boolean
@@ -65,7 +68,7 @@ jobs:
         run: |
           s="${{ inputs.so }}"
           m="${{ matrix.uf }}"; uf=${m%%:*}; fatia=""; [ "$m" != "$uf" ] && fatia="--fatia ${m#*:}"
-          python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.atalhos && '--atalhos' || '' }} ${{ inputs.simular && '--simular' || '' }}
+          python -I espelho/base_interna.py --uf $uf $fatia --jobs 3 ${s:+--so $s} ${{ inputs.fase && format('--fase {0}', inputs.fase) || '' }} ${{ inputs.atalhos && '--atalhos' || '' }} ${{ inputs.simular && '--simular' || '' }}
   juntar:
     # as fatias de uma UF rodam juntas e podem criar a mesma pasta duas vezes (o Drive aceita nomes repetidos):
     # no fim, junta as pastas de mesmo nome (dedupe por nome junta as pastas; o modo skip só apaga arquivo idêntico repetido)

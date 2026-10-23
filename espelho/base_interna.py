@@ -56,8 +56,12 @@ MATERIAIS = {
     "postonovo": ("2_Saúde/Vídeo", "O posto novo", "video-postonovo/{slug}/postonovo.mp4"),
     "mcmv": ("6_Moradia/Vídeo", "Casa nova", "video-mcmv/{slug}/mcmv.mp4"),
     "escola": ("1_Educação/Vídeo", "Merenda da Pré-escola", "video-escola/{slug}/escola.mp4"),
-    "saude": ("2_Saúde/Vídeo", "Alerta Saúde SUS", "video-saude/{slug}/saude.mp4"),   # o mesmo do espelho_drive.py
+    # o de Saúde já está em Conteúdo por cidade (espelho_drive.py): aqui vai um atalho para ele, sem ocupar cota
+    "saude": ("2_Saúde/Vídeo", "Alerta Saúde SUS", "video-saude/{slug}/saude.mp4"),
 }
+ATALHO_PARA_CIDADES = {"saude"}
+# os 1.340 territórios por bairro de 22/10 (cidades de 500 mil+): --fase cidades deixa para depois, --fase bairros só eles
+BAIRROS_NOVOS = set(json.loads((Path(__file__).resolve().parent / "bairros_novos.json").read_text(encoding="utf-8")))
 
 
 def nome_do_arquivo(material, bairro) -> str:
@@ -75,34 +79,53 @@ def base_da_cidade(cid) -> str:
     return f"{DESTINO}/{regiao}/{uf}/{intermediaria}/{nome}"
 
 
-def executar(cid, rc, so, simular):
-    terrs = cid[5]
+def executar(cid, rc, so, simular, fase=None):
+    terrs = [t for t in cid[5] if fase is None or (t[0] in BAIRROS_NOVOS) == (fase == "bairros")]
     base = base_da_cidade(cid)
     ja = {i["Path"][len(base) + 1:]: i["Size"] for i in rc.listar(base) if not i["IsDir"]}
-    nomes = rotulos(terrs)
-    pedidos = [(f"{MATERIAIS[m][0]}/{nome_do_arquivo(m, nomes[t[0]])}", f"{FILA}/{MATERIAIS[m][2].format(slug=t[0])}")
+    nomes = rotulos(cid[5])                                # o número do bairro repetido vem da cidade inteira
+    pedidos = [(m, f"{MATERIAIS[m][0]}/{nome_do_arquivo(m, nomes[t[0]])}", f"{FILA}/{MATERIAIS[m][2].format(slug=t[0])}")
                for m in so for t in terrs if t[0] not in FORA_DO_AR.get(m, ())]
+    na_cidade = {}
+    if any(m in ATALHO_PARA_CIDADES for m, _, _ in pedidos):
+        pasta = f"{CIDADES}/{cid[2]}/{cid[1]}/Vídeo"
+        na_cidade = {i["Name"]: f"{pasta}/{i['Name']}" for i in rc.listar(pasta, recursivo=False) if not i["IsDir"]}
+    passos = [("atalho", arq, na_cidade[arq.rsplit("/", 1)[1]]) for m, arq, _ in pedidos
+              if m in ATALHO_PARA_CIDADES and arq not in ja and arq.rsplit("/", 1)[1] in na_cidade]
+    pedidos = [p for p in pedidos if p[0] not in ATALHO_PARA_CIDADES]
     with ThreadPoolExecutor(8) as ex:                      # um GET por vídeo: São Paulo tem mais de mil
-        tamanhos = list(ex.map(lambda p: tamanho_no_r2(p[1]), pedidos))
-    passos = [(arq, url, "troca" if arq in ja else "novo") for (arq, url), tam in zip(pedidos, tamanhos)
-              if tam is not None and ja.get(arq) != tam]       # falta, ou a fila refez (troca no mesmo arquivo)
+        tamanhos = list(ex.map(lambda p: tamanho_no_r2(p[2]), pedidos))
+    passos += [("troca" if arq in ja else "novo", arq, url) for (_, arq, url), tam in zip(pedidos, tamanhos)
+               if tam is not None and ja.get(arq) != tam]      # falta, ou a fila refez (troca no mesmo arquivo)
     if simular:
-        for arq, url, tipo in passos:
-            print(f"  [simular] {tipo:5} {base}/{arq}  <-  {url}")
+        for tipo, arq, origem in passos:
+            print(f"  [simular] {tipo:6} {base}/{arq}  <-  {origem}")
         return f"{len(passos)} a subir"
-    for pasta in sorted({a.rsplit("/", 1)[0] for a, _, _ in passos}):   # pastas antes, uma de cada vez (sem duplicar)
+    for pasta in sorted({a.rsplit("/", 1)[0] for _, a, _ in passos}):   # pastas antes, uma de cada vez (sem duplicar)
         rc.mkdir(f"{base}/{pasta}")
+
+    def passo(p):
+        tipo, arq, origem = p
+        if tipo == "atalho":
+            rc.atalho(origem, f"{base}/{arq}")
+            return
+        for tentativa in range(4):     # o Worker às vezes corta a conexão no meio (connection reset, 409): de novo
+            try:
+                return rc.copyurl(origem, f"{base}/{arq}")
+            except RuntimeError:
+                if tentativa == 3: raise
+                time.sleep(10 * (tentativa + 1))
     with ThreadPoolExecutor(4) as ex:
-        list(ex.map(lambda p: rc.copyurl(p[1], f"{base}/{p[0]}"), passos))
-    trocas = sum(1 for p in passos if p[2] == "troca")
-    return f"{len(passos) - trocas} novos, {trocas} trocados"
+        list(ex.map(passo, passos))
+    n = {k: sum(1 for p in passos if p[0] == k) for k in ("novo", "troca", "atalho")}
+    return f"{n['novo']} novos, {n['troca']} trocados" + (f", {n['atalho']} atalhos" if n["atalho"] else "")
 
 
 def atalhos(cid, rc, simular, so=tuple(MATERIAIS)):
     """Atalho em Conteúdo por cidade/<UF>/<Cidade>/Vídeo/ para cada <tema>/Vídeo/<arquivo> da cidade na base, só dos
     materiais pedidos (--so). Nome que já existe lá (o Alerta Saúde SUS do espelho, um atalho de antes) fica como está."""
     base, pasta = base_da_cidade(cid), f"{CIDADES}/{cid[2]}/{cid[1]}/Vídeo"
-    nomes = tuple(MATERIAIS[m][1] for m in so)
+    nomes = tuple(MATERIAIS[m][1] for m in so if m not in ATALHO_PARA_CIDADES)   # o de Saúde já é arquivo lá
     videos = [i["Path"] for i in rc.listar(base) if not i["IsDir"] and i["Path"].rsplit("/", 2)[-2] == "Vídeo"
               and i["Path"].rsplit("/", 1)[1].startswith(tuple(n + e for n in nomes for e in (".mp4", " - ")))]
     if not videos:
@@ -132,6 +155,8 @@ def main():
     ap.add_argument("--limite", type=int)
     ap.add_argument("--fatia", help="k/n: só a k-ésima de n partes")
     ap.add_argument("--atalhos", action="store_true", help="atalhos em Conteúdo por cidade para o que já está na base")
+    ap.add_argument("--fase", choices=("cidades", "bairros"),
+                    help="cidades: tudo menos os bairros novos de 22/10 (bairros_novos.json); bairros: só eles")
     ap.add_argument("--simular", action="store_true")
     a = ap.parse_args()
     so = [m for m in a.so.split(",") if m]
@@ -146,6 +171,8 @@ def main():
     if a.fatia:
         k, n = (int(x) for x in a.fatia.split("/"))
         cidades = cidades[k - 1::n]
+    if a.fase == "bairros":
+        cidades = [c for c in cidades if any(t[0] in BAIRROS_NOVOS for t in c[5])]
     cidades = cidades[:a.limite] if a.limite else cidades
     print(f"{len(cidades)} cidades, material: {', '.join(so)}{' (simulação)' if a.simular else ''}")
 
@@ -158,7 +185,7 @@ def main():
     erros, t0 = [], time.time()
     try:
         with ThreadPoolExecutor(a.jobs) as ex:
-            futuros = {(ex.submit(atalhos, c, rc, a.simular, so) if a.atalhos else ex.submit(executar, c, rc, so, a.simular)): c
+            futuros = {(ex.submit(atalhos, c, rc, a.simular, so) if a.atalhos else ex.submit(executar, c, rc, so, a.simular, a.fase)): c
                        for c in cidades}
             for n, f in enumerate(as_completed(futuros), 1):
                 c = futuros[f]
