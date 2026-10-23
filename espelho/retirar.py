@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))          # python -I não põe a pasta do script no path
 from espelho_drive import DESTINO as CIDADES, Rclone, indice, rotulos   # noqa: E402
-from base_interna import MATERIAIS, base_da_cidade, nome_do_arquivo   # noqa: E402
+from base_interna import DESTINO as BASE, MATERIAIS, base_da_cidade, nome_do_arquivo   # noqa: E402
 
 
 def caminhos(cid, tipos_por_slug) -> list[str]:
@@ -42,11 +42,12 @@ def caminhos(cid, tipos_por_slug) -> list[str]:
     return out
 
 
-def executar(cid, rc, tipos_por_slug, simular):
+def executar(cid, rc, tipos_por_slug, simular, existentes=None):
     alvo = caminhos(cid, tipos_por_slug)
-    existem = set()
-    for pasta in sorted({c.rsplit("/", 1)[0] for c in alvo}):
-        existem |= {f"{pasta}/{i['Name']}" for i in rc.listar(pasta, recursivo=False) if not i["IsDir"]}
+    existem = existentes or set()
+    if existentes is None:                         # sem --listagens: lista as pastas da cidade (lento com muitas cidades)
+        for pasta in sorted({c.rsplit("/", 1)[0] for c in alvo}):
+            existem |= {f"{pasta}/{i['Name']}" for i in rc.listar(pasta, recursivo=False) if not i["IsDir"]}
     fora = [c for c in alvo if c in existem]
     if simular:
         for c in fora:
@@ -62,6 +63,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--lista", default=str(Path(__file__).with_name("fora_do_ar.json")))
     ap.add_argument("--indice-antigo", help="indice.json com os territórios que já saíram do site")
+    ap.add_argument("--listagens", nargs=2, metavar=("BASE", "CIDADES"),
+                    help="saída de `rclone lsjson -R --fast-list --files-only` das duas árvores (base e Conteúdo por "
+                         "cidade): em vez de listar pasta por pasta, só manda à lixeira o que aparece nelas")
     ap.add_argument("--remote", default="espelho")
     ap.add_argument("--jobs", type=int, default=3, help="cidades ao mesmo tempo")
     ap.add_argument("--simular", action="store_true")
@@ -88,11 +92,16 @@ def main():
         print(f"AVISO: {len(sem)} slugs fora do índice (passe --indice-antigo): {', '.join(sem[:20])}")
     print(f"{len(alvo)} cidades, {sum(len(v) for v in lista.values())} itens na lista{' (simulação)' if a.simular else ''}")
 
+    existentes = None
+    if a.listagens:
+        existentes = set()
+        for raiz, arq in zip((BASE, CIDADES), a.listagens):
+            existentes |= {f"{raiz}/{i['Path']}" for i in json.loads(Path(arq).read_text(encoding="utf-8"))}
     rc = Rclone(a.remote)
     erros, total, t0 = [], 0, time.time()
     try:
         with ThreadPoolExecutor(a.jobs) as ex:
-            futuros = {ex.submit(executar, c, rc, tipos_por_slug, a.simular): c for c in alvo}
+            futuros = {ex.submit(executar, c, rc, tipos_por_slug, a.simular, existentes): c for c in alvo}
             for n, f in enumerate(as_completed(futuros), 1):
                 c = futuros[f]
                 try:
